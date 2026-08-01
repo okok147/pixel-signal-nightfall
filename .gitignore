@@ -34,3 +34,7 @@ Thumbs.db
 # Unity package/tool caches
 Assets/AssetStoreTools*/
 sysinfo.txt
+
+# Browser verification artifacts
+.playwright-cli/
+output/playwright/

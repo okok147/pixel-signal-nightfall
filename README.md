@@ -19,6 +19,17 @@
 
 整體方向採用原創的柔和凱爾特童話與 fantasy-life 氣氛；不使用或抽取《瑪奇》、Vampire Survivors 或其他遊戲的角色、素材、介面、圖示或商標。
 
+## 瀏覽器 companion
+
+`web/` 是同一套 Nightfall Meadow 視覺方向的無依賴 canvas companion：保留 Signal Drift 的收集、閃避與 Protective Pulse 玩法，並使用 Meadow Courier、Dusk Slime、Moonhorn、羊皮紙／木框 HUD 與月露 XP bar。
+
+```bash
+cd web
+python3 -m http.server 4173
+```
+
+然後開啟 <http://127.0.0.1:4173>。瀏覽器版可獨立執行，不會影響 Unity 的 `Assets/Scenes/Main.unity`。
+
 ## 開啟
 
 1. 將此 repository clone 後，使用 Unity Hub 開啟 repository 根目錄。

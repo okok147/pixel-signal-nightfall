@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17152b" />
+    <meta
+      name="description"
+      content="Nightfall Meadow：一個溫暖奇幻風格的 Signal Drift 瀏覽器遊戲 companion。"
+    />
+    <title>Nightfall Meadow — Signal Drift</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game-shell" aria-label="Nightfall Meadow 瀏覽器遊戲">
+      <div class="canvas-frame">
+        <canvas id="game" width="960" height="620" aria-label="Nightfall Meadow 遊戲畫面"></canvas>
+      </div>
+      <p class="sr-only" id="game-help">
+        使用 WASD 或方向鍵移動 Meadow Courier。收集月露，避開 Dusk Slime 與 Moonhorn，按 Space 施放 Protective Pulse。
+      </p>
+    </main>
+    <script src="game.js"></script>
+  </body>
+</html>
