@@ -44,6 +44,11 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Sprite heartIcon;
     private Sprite bootIcon;
     private Sprite pulseIcon;
+    private Sprite[] heroFrames;
+    private float heroWalkTime;
+    private Vector3 lastHeroPosition;
+    private bool heroPositionKnown;
+    private bool heroFacingLeft;
 
     private Texture2D authoredBackground;
     private Texture2D authoredSpriteSheet;
@@ -160,7 +165,12 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         authoredSpriteSheet = Resources.Load<Texture2D>("NightfallMeadow/sprite_sheet_256");
         if (authoredSpriteSheet != null)
         {
-            heroSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Meadow Courier", 0, 1);
+            heroFrames = new Sprite[4];
+            for (int frame = 0; frame < heroFrames.Length; frame++)
+            {
+                heroFrames[frame] = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Meadow Courier " + frame, frame, 1);
+            }
+            heroSprite = heroFrames[0];
             portraitSprite = heroSprite;
             slimeSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Dusk Slime", 0, 2);
             hornSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Moonhorn", 5, 2);
@@ -296,6 +306,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             new[] { "..BBB..", "..BBB..", "..BBB..", "..BBBB.", ".BBBBB.", "BBBBBB.", "......." },
             new Dictionary<char, Color> { { 'B', CutePixelKit.Hex("7A5141") } }, 12f);
         pulseIcon = orbitSprite;
+        heroFrames = new Sprite[] { heroSprite };
     }
 
     private void BuildFairytaleField()
@@ -363,6 +374,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void ApplySkinToWorld(bool hideLegacyField)
     {
+        Sprite activeHeroSprite = GetHeroPresentationSprite();
         SpriteRenderer[] renderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
         foreach (SpriteRenderer renderer in renderers)
         {
@@ -377,7 +389,11 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 continue;
             }
 
-            if (objectName == "Night Courier") renderer.sprite = heroSprite;
+            if (objectName == "Night Courier")
+            {
+                renderer.sprite = activeHeroSprite;
+                renderer.flipX = heroFacingLeft;
+            }
             else if (objectName == "Red Drone") renderer.sprite = slimeSprite;
             else if (objectName == "Brute Drone") renderer.sprite = hornSprite;
             else if (objectName == "Spark Bolt") renderer.sprite = sparkSprite;
@@ -386,6 +402,37 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             else if (objectName == "Night Chest") renderer.sprite = chestSprite;
             else if (objectName == "Ember Ring") renderer.sprite = orbitSprite;
         }
+    }
+
+    private Sprite GetHeroPresentationSprite()
+    {
+        if (heroFrames == null || heroFrames.Length == 0) return heroSprite;
+
+        GameObject playerObject = GetValue("player") as GameObject;
+        if (playerObject == null) return heroFrames[0];
+
+        Vector3 currentPosition = playerObject.transform.position;
+        if (!heroPositionKnown)
+        {
+            lastHeroPosition = currentPosition;
+            heroPositionKnown = true;
+        }
+
+        Vector3 delta = currentPosition - lastHeroPosition;
+        bool moving = GetMode() == "Playing" && delta.sqrMagnitude > 0.000001f;
+        if (moving)
+        {
+            heroWalkTime += Time.unscaledDeltaTime * 10f;
+            if (Mathf.Abs(delta.x) > 0.001f) heroFacingLeft = delta.x < 0f;
+        }
+        else
+        {
+            heroWalkTime = 0f;
+        }
+        lastHeroPosition = currentPosition;
+
+        int frameIndex = moving ? Mathf.FloorToInt(heroWalkTime) % heroFrames.Length : 0;
+        return heroFrames[frameIndex] != null ? heroFrames[frameIndex] : heroFrames[0];
     }
 
     private void BuildStyles()

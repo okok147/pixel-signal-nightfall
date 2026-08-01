@@ -7,3 +7,4 @@
 - 2026-08-01: Unity Play verification completed after refreshing the script assembly: authored moonlit clearing and sprite sheet render in Play, the first level-up reliably appears, numeric selection returns to gameplay, pause/resume works, and the Lost result card renders. No compiler errors remained after the refresh.
 - 2026-08-01: The project uses `activeInputHandler: 2` so the legacy input calls used by the prototype and Unity's current input backend can coexist.
 - 2026-08-01: Pulled the latest GitHub Nightfall Meadow art pack into the Unity presentation layer: authored meadow background, Meadow Courier, Dusk Slime, Moonhorn, compact parchment/wood HUD, six-slot loadout, and full-width moon-dew progress bar.
+- 2026-08-02: Refined player feel: enemy contact now leaves the player in place and pushes the enemy away, movement accelerates and brakes more decisively, the courier stays upright, and the authored four-frame walk cycle flips horizontally while moving.

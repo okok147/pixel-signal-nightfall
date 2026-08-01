@@ -538,8 +538,10 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         Vector2 input = new Vector2(horizontal, vertical);
         if (input.sqrMagnitude > 1f) input.Normalize();
         Vector2 desired = input * moveSpeed;
-        playerVelocity = Vector2.MoveTowards(playerVelocity, desired, 16f * dt);
-        if (input.sqrMagnitude < 0.01f) playerVelocity = Vector2.MoveTowards(playerVelocity, Vector2.zero, 19f * dt);
+        // Keep the control responsive and grounded: a quick start, a firm stop,
+        // and no fish-like sideways drift after the player releases the key.
+        playerVelocity = Vector2.MoveTowards(playerVelocity, desired, 28f * dt);
+        if (input.sqrMagnitude < 0.01f) playerVelocity = Vector2.MoveTowards(playerVelocity, Vector2.zero, 38f * dt);
 
         Vector3 next = player.transform.position + new Vector3(playerVelocity.x, playerVelocity.y, 0f) * dt;
         next.x = Mathf.Clamp(next.x, ArenaLeft + 0.55f, ArenaRight - 0.55f);
@@ -549,7 +551,6 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         if (input.sqrMagnitude > 0.01f && playerVelocity.sqrMagnitude > 0.01f)
         {
             lastAim = playerVelocity.normalized;
-            player.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(lastAim.y, lastAim.x) * Mathf.Rad2Deg - 90f);
         }
 
         if (contactCooldown > 0f) player.SetActive(Mathf.FloorToInt(contactCooldown * 14f) % 2 == 0);
@@ -622,8 +623,14 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             {
                 playerHealth -= enemy.Kind == EnemyKind.Brute ? 12f : 6f;
                 contactCooldown = 1.15f;
-                player.transform.position = new Vector3(spawnPoint.x, spawnPoint.y, 0f);
+                // A hit interrupts the step but never teleports the player.
+                // Push the enemy away instead, so the player can recover in place.
                 playerVelocity = Vector2.zero;
+                Vector2 enemyAway = (Vector2)enemy.Object.transform.position - (Vector2)player.transform.position;
+                if (enemyAway.sqrMagnitude < 0.001f) enemyAway = Vector2.up;
+                enemyAway.Normalize();
+                enemy.Object.transform.position = (Vector2)player.transform.position + enemyAway * (enemy.Radius + 0.55f);
+                enemy.Velocity = enemyAway * Mathf.Max(enemy.Speed * 0.9f, 2.2f);
                 if (playerHealth <= 0f) Finish(GameMode.Lost);
             }
         }
