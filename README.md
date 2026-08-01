@@ -1,6 +1,6 @@
-# Pixel Signal: Nightfall — Unity 2D
+# Pixel Signal: Nightfall — Unity 2.5D
 
-一個沒有第三方素材依賴的原創 survivor-like 2D pixel-art game。戰鬥 simulation、敵群、投射物、經驗碎片與寶箱在執行時生成；GitHub 的 Nightfall Meadow authored art pack 會優先作為正式視覺層載入，並保留 procedural fallback 方便快速迭代。
+一個沒有第三方素材依賴的原創 survivor-like 2.5D pixel-art game。戰鬥 simulation、敵群、投射物、經驗碎片與寶箱在執行時生成；GitHub 的 Nightfall Meadow authored art pack 會優先作為正式視覺層載入，並保留 procedural fallback 方便快速迭代。
 
 ## Nightfall Meadow redesign
 
@@ -11,6 +11,7 @@
 - 木框、羊皮紙、暖色與緊湊 HUD；
 - 底部裝備列與全寬 XP bar；
 - 三張大型升級卡與更友善的文字；
+- 遠景／中景／近景視差、柔和月光與燈籠體積光，以及依角色所在高度變化的比例與排序，形成 2.5D fantasy-life 場景感；
 - 可重用、無外部依賴的程式生成像素素材工具。
 
 `CuteNightfallPresentation.cs` 會保留現有 `PixelSurvivorGame` 戰鬥模擬，停用舊開發者 HUD，優先套用 GitHub authored 背景／sprite sheet，再以 procedural kit 作 fallback。這讓目前版本仍可遊玩，同時為下一階段拆分正式系統留出空間。

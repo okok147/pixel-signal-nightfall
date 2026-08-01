@@ -17,6 +17,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 {
     private const BindingFlags InstancePrivate = BindingFlags.Instance | BindingFlags.NonPublic;
     private const float ReferenceWidth = 960f;
+    private static readonly Vector2 PresentationSpawnPoint = new Vector2(0f, -2.65f);
     // Match the authored 480x270 / 16:9 composition so the HUD scales cleanly
     // at 960x540, 1280x720 and 1920x1080 without editor letterboxing.
     private const float ReferenceHeight = 540f;
@@ -49,6 +50,14 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Vector3 lastHeroPosition;
     private bool heroPositionKnown;
     private bool heroFacingLeft;
+
+    private Transform farDepthLayer;
+    private Transform midDepthLayer;
+    private Transform nearDepthLayer;
+    private GameObject playerLanternGlow;
+    private Sprite moonGlowSprite;
+    private Sprite lanternGlowSprite;
+    private readonly Dictionary<GameObject, Vector3> actorBaseScales = new Dictionary<GameObject, Vector3>();
 
     private Texture2D authoredBackground;
     private Texture2D authoredSpriteSheet;
@@ -135,6 +144,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             }
         }
 
+        UpdateTwoPointFiveSpace();
         skinRefresh -= Time.unscaledDeltaTime;
         if (skinRefresh <= 0f)
         {
@@ -312,6 +322,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private void BuildFairytaleField()
     {
         GameObject root = new GameObject("Fairytale Meadow");
+        farDepthLayer = CreateDepthLayer(root.transform, "2.5D Far Meadow");
+        midDepthLayer = CreateDepthLayer(root.transform, "2.5D Mid Meadow");
+        nearDepthLayer = CreateDepthLayer(root.transform, "2.5D Near Meadow");
 
         authoredBackground = Resources.Load<Texture2D>("NightfallMeadow/background_moonlit_clearing_480x270");
         if (authoredBackground != null)
@@ -327,13 +340,15 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 SpriteMeshType.FullRect);
             float cameraHeight = 5.2f * 2f;
             float authoredHeight = authoredBackground.height / 32f;
-            float backgroundScale = cameraHeight / authoredHeight;
-            CutePixelKit.SpriteObject(root.transform, "Moonlit Clearing", backgroundSprite, Vector2.zero, backgroundScale, -45);
+            float backgroundScale = cameraHeight / authoredHeight * 1.05f;
+            CutePixelKit.SpriteObject(farDepthLayer, "Moonlit Clearing", backgroundSprite, Vector2.zero, backgroundScale, -45);
+            Build2PointFiveProps();
+            Build2PointFiveLighting();
             return;
         }
 
-        CutePixelKit.RectObject(root.transform, "Meadow Ground", Vector2.zero, new Vector2(15.8f, 9.0f), CutePixelKit.Hex("273B36"), -42);
-        CutePixelKit.RectObject(root.transform, "Moon Wash", new Vector2(1.7f, 1.1f), new Vector2(9.4f, 5.8f), new Color(0.30f, 0.42f, 0.48f, 0.18f), -41);
+        CutePixelKit.RectObject(farDepthLayer, "Meadow Ground", Vector2.zero, new Vector2(15.8f, 9.0f), CutePixelKit.Hex("273B36"), -42);
+        CutePixelKit.RectObject(farDepthLayer, "Moon Wash", new Vector2(1.7f, 1.1f), new Vector2(9.4f, 5.8f), new Color(0.30f, 0.42f, 0.48f, 0.18f), -41);
 
         Vector2[] stones =
         {
@@ -370,6 +385,168 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             CutePixelKit.RectObject(root.transform, "Firefly Glow", point, new Vector2(0.12f, 0.12f), new Color(1f, 0.83f, 0.42f, 0.25f), -29);
             CutePixelKit.RectObject(root.transform, "Firefly", point, new Vector2(0.035f, 0.035f), CutePixelKit.Gold, -28);
         }
+
+        Build2PointFiveProps();
+        Build2PointFiveLighting();
+    }
+
+    private Transform CreateDepthLayer(Transform parent, string name)
+    {
+        GameObject layer = new GameObject(name);
+        layer.transform.SetParent(parent, false);
+        return layer.transform;
+    }
+
+    private void Build2PointFiveProps()
+    {
+        Dictionary<char, Color> treePalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.Hex("1B3A35") },
+            { 'L', CutePixelKit.Hex("2E6F55") },
+            { 'M', CutePixelKit.Hex("63B36F") },
+            { 'B', CutePixelKit.Hex("6D493A") }
+        };
+        Sprite treeSprite = CutePixelKit.CreateSprite(
+            "2.5D Canopy Tree",
+            new[]
+            {
+                "....OO...OO....", "..OOOOOOOOOO...", ".OOOLLLLOOOO...",
+                "OOOLLLLLLLOOO..", "OOOOOLLLLOOOO..", ".OOOOOOOOOOO...",
+                "...OOOBBOO.....", "....OBB.......", "..............."
+            },
+            treePalette,
+            16f);
+
+        Vector2[] midTrees =
+        {
+            new Vector2(-6.45f, 2.65f), new Vector2(6.55f, 2.55f),
+            new Vector2(-6.8f, -0.75f), new Vector2(6.85f, -0.65f)
+        };
+        foreach (Vector2 point in midTrees)
+        {
+            CutePixelKit.SpriteObject(midDepthLayer, "Midground Canopy", treeSprite, point, 0.92f, -12);
+        }
+
+        Vector2[] nearTrees =
+        {
+            new Vector2(-6.95f, -3.45f), new Vector2(6.85f, -3.55f),
+            new Vector2(-6.85f, -2.15f), new Vector2(6.9f, -2.05f)
+        };
+        foreach (Vector2 point in nearTrees)
+        {
+            CutePixelKit.ShadowObject(nearDepthLayer, "Near Canopy Shadow", point + new Vector2(0.08f, -0.28f), new Vector2(1.15f, 0.38f), 98);
+            CutePixelKit.SpriteObject(nearDepthLayer, "Near Canopy", treeSprite, point, 1.22f, 120);
+        }
+
+        Sprite grassSprite = CutePixelKit.CreateSprite(
+            "2.5D Meadow Grass",
+            new[] { "........", "..L.....", ".LLL..L.", "LLLLLLLL", "...BB..." },
+            new Dictionary<char, Color>
+            {
+                { 'L', CutePixelKit.Hex("75C77D") }, { 'B', CutePixelKit.Hex("487B50") }
+            },
+            16f);
+        Vector2[] foregroundGrass =
+        {
+            new Vector2(-3.1f, -3.65f), new Vector2(-1.75f, -3.8f),
+            new Vector2(1.9f, -3.78f), new Vector2(3.45f, -3.62f)
+        };
+        foreach (Vector2 point in foregroundGrass)
+        {
+            CutePixelKit.SpriteObject(nearDepthLayer, "Foreground Grass", grassSprite, point, 0.72f, 126);
+        }
+
+        CutePixelKit.RectObject(
+            nearDepthLayer,
+            "Near Meadow Edge",
+            new Vector2(0f, -4.12f),
+            new Vector2(16f, 0.34f),
+            new Color(0.07f, 0.13f, 0.16f, 0.32f),
+            130);
+    }
+
+    private void Build2PointFiveLighting()
+    {
+        moonGlowSprite = CreateRadialSprite(
+            "Moon Volume Glow",
+            new Color(0.46f, 0.66f, 1f, 0.28f),
+            128);
+        CutePixelKit.SpriteObject(
+            farDepthLayer,
+            "Moon Volume",
+            moonGlowSprite,
+            new Vector2(3.65f, 2.55f),
+            2.2f,
+            -44);
+
+        lanternGlowSprite = CreateRadialSprite(
+            "Courier Lantern Glow",
+            new Color(1f, 0.65f, 0.30f, 0.30f),
+            128);
+        playerLanternGlow = CutePixelKit.SpriteObject(
+            midDepthLayer,
+            "Courier Lantern Bloom",
+            lanternGlowSprite,
+            PresentationSpawnPoint + new Vector2(0f, 0.32f),
+            1.25f,
+            -4);
+    }
+
+    private Sprite CreateRadialSprite(string name, Color color, int size)
+    {
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        texture.name = name + " Texture";
+        texture.filterMode = FilterMode.Bilinear;
+        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.hideFlags = HideFlags.HideAndDontSave;
+
+        Color[] pixels = new Color[size * size];
+        Vector2 center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
+        float radius = size * 0.5f;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float distance = Vector2.Distance(new Vector2(x, y), center) / radius;
+                float alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 2.2f) * color.a;
+                pixels[y * size + x] = new Color(color.r, color.g, color.b, alpha);
+            }
+        }
+        texture.SetPixels(pixels);
+        texture.Apply(false, true);
+
+        Sprite sprite = Sprite.Create(
+            texture,
+            new Rect(0f, 0f, size, size),
+            new Vector2(0.5f, 0.5f),
+            size * 0.5f,
+            0,
+            SpriteMeshType.FullRect);
+        sprite.name = name;
+        return sprite;
+    }
+
+    private void UpdateTwoPointFiveSpace()
+    {
+        if (simulation == null) return;
+        GameObject playerObject = GetValue("player") as GameObject;
+        if (playerObject == null) return;
+
+        Vector3 playerPosition = playerObject.transform.position;
+        float horizontal = Mathf.Clamp(playerPosition.x / 7.35f, -1f, 1f);
+        float vertical = Mathf.Clamp(playerPosition.y / 4.05f, -1f, 1f);
+        Vector3 parallax = new Vector3(-horizontal * 0.18f, -vertical * 0.08f, 0f);
+        float blend = 1f - Mathf.Exp(-Time.unscaledDeltaTime * 8f);
+        if (farDepthLayer != null) farDepthLayer.localPosition = Vector3.Lerp(farDepthLayer.localPosition, parallax * 0.24f, blend);
+        if (midDepthLayer != null) midDepthLayer.localPosition = Vector3.Lerp(midDepthLayer.localPosition, parallax * 0.52f, blend);
+        if (nearDepthLayer != null) nearDepthLayer.localPosition = Vector3.Lerp(nearDepthLayer.localPosition, parallax, blend);
+
+        if (playerLanternGlow != null)
+        {
+            playerLanternGlow.transform.position = playerPosition + new Vector3(0f, 0.32f, 0f);
+            float pulse = 1f + Mathf.Sin(Time.unscaledTime * 2.4f) * 0.035f;
+            playerLanternGlow.transform.localScale = Vector3.one * (1.25f * pulse);
+        }
     }
 
     private void ApplySkinToWorld(bool hideLegacyField)
@@ -401,7 +578,28 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             else if (objectName == "Signal Shard") renderer.sprite = shardSprite;
             else if (objectName == "Night Chest") renderer.sprite = chestSprite;
             else if (objectName == "Ember Ring") renderer.sprite = orbitSprite;
+
+            if (objectName == "Night Courier" || objectName == "Red Drone" || objectName == "Brute Drone")
+            {
+                ApplyActorDepth(renderer);
+            }
         }
+    }
+
+    private void ApplyActorDepth(SpriteRenderer renderer)
+    {
+        GameObject actorObject = renderer.gameObject;
+        Vector3 baseScale;
+        if (!actorBaseScales.TryGetValue(actorObject, out baseScale))
+        {
+            baseScale = renderer.transform.localScale;
+            actorBaseScales[actorObject] = baseScale;
+        }
+
+        float depth = Mathf.InverseLerp(4.05f, -4.05f, renderer.transform.position.y);
+        float depthScale = Mathf.Lerp(0.92f, 1.10f, depth);
+        renderer.transform.localScale = baseScale * depthScale;
+        renderer.sortingOrder = 32 + Mathf.RoundToInt(depth * 70f);
     }
 
     private Sprite GetHeroPresentationSprite()
