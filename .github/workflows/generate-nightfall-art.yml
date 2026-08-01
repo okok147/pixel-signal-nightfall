@@ -1,0 +1,48 @@
+name: Generate Nightfall Meadow Art
+
+on:
+  push:
+    branches:
+      - agent/nightfall-authored-art-pack
+    paths:
+      - tools/generate_nightfall_art_pack.py
+      - Assets/Art/NightfallMeadow/Reference/sprite_sheet_256.png
+      - .github/workflows/generate-nightfall-art.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-art:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out art branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/nightfall-authored-art-pack
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Generate PNG assets
+        run: python tools/generate_nightfall_art_pack.py
+
+      - name: Commit generated assets
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Assets/Art/NightfallMeadow/Generated web/assets/nightfall/generated
+          if git diff --cached --quiet; then
+            echo "Generated assets are already current."
+            exit 0
+          fi
+          git commit -m "Generate Nightfall Meadow production PNG assets"
+          git push origin HEAD:agent/nightfall-authored-art-pack
