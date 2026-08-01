@@ -419,7 +419,10 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         wandLevel = 1;
         projectileCount = 1;
         projectilePierce = 1;
-        maxHealth = 100;
+        // Give the first level-up window enough breathing room for a new player.
+        // The run should teach movement and pulse timing before contact damage
+        // becomes the dominant outcome.
+        maxHealth = 120;
         playerHealth = maxHealth;
         weaponDamage = 14f;
         weaponCooldown = 0.72f;
@@ -617,8 +620,8 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
             if (contactCooldown <= 0f && Vector2.Distance(player.transform.position, enemy.Object.transform.position) < enemy.Radius + 0.38f)
             {
-                playerHealth -= enemy.Kind == EnemyKind.Brute ? 18f : 9f;
-                contactCooldown = 0.85f;
+                playerHealth -= enemy.Kind == EnemyKind.Brute ? 12f : 6f;
+                contactCooldown = 1.15f;
                 player.transform.position = new Vector3(spawnPoint.x, spawnPoint.y, 0f);
                 playerVelocity = Vector2.zero;
                 if (playerHealth <= 0f) Finish(GameMode.Lost);

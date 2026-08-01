@@ -1,6 +1,6 @@
 # Pixel Signal: Nightfall — Unity 2D
 
-一個沒有第三方素材依賴的原創 survivor-like 2D pixel-art game。角色、敵群、投射物、經驗碎片、寶箱與 HUD 在執行時生成，因此專案很輕，適合先在 Unity 裡快速迭代。
+一個沒有第三方素材依賴的原創 survivor-like 2D pixel-art game。戰鬥 simulation、敵群、投射物、經驗碎片與寶箱在執行時生成；GitHub 的 Nightfall Meadow authored art pack 會優先作為正式視覺層載入，並保留 procedural fallback 方便快速迭代。
 
 ## Nightfall Meadow redesign
 
@@ -13,22 +13,15 @@
 - 三張大型升級卡與更友善的文字；
 - 可重用、無外部依賴的程式生成像素素材工具。
 
-`CuteNightfallPresentation.cs` 會保留現有 `PixelSurvivorGame` 戰鬥模擬，停用舊開發者 HUD，再套用新場景、角色和 UI。這讓目前版本仍可遊玩，同時為下一階段拆分正式系統留出空間。
+`CuteNightfallPresentation.cs` 會保留現有 `PixelSurvivorGame` 戰鬥模擬，停用舊開發者 HUD，優先套用 GitHub authored 背景／sprite sheet，再以 procedural kit 作 fallback。這讓目前版本仍可遊玩，同時為下一階段拆分正式系統留出空間。
 
 美術與 UX 規則見 [`ART_DIRECTION.md`](ART_DIRECTION.md)。下次開發可直接使用 [`FUTURE_DEVELOPMENT_PROMPT.md`](FUTURE_DEVELOPMENT_PROMPT.md)。
 
 整體方向採用原創的柔和凱爾特童話與 fantasy-life 氣氛；不使用或抽取《瑪奇》、Vampire Survivors 或其他遊戲的角色、素材、介面、圖示或商標。
 
-## 瀏覽器 companion
+## Nightfall Meadow art pack
 
-`web/` 是同一套 Nightfall Meadow 視覺方向的無依賴 canvas companion：保留 Signal Drift 的收集、閃避與 Protective Pulse 玩法，並使用 Meadow Courier、Dusk Slime、Moonhorn、羊皮紙／木框 HUD 與月露 XP bar。
-
-```bash
-cd web
-python3 -m http.server 4173
-```
-
-然後開啟 <http://127.0.0.1:4173>。瀏覽器版可獨立執行，不會影響 Unity 的 `Assets/Scenes/Main.unity`。
+`Assets/Art/NightfallMeadow/` 保存從 GitHub 拉取的 canonical art pack、reference sheet 與 production spec；`Assets/Resources/NightfallMeadow/` 放 Unity runtime 需要的輕量副本。背景與 sprite sheet 使用 480×270 logical composition、32px cell、Point filtering、無 mipmap，讓 960×540、1280×720 與 1920×1080 都能維持清晰像素邊緣。
 
 ## 開啟
 

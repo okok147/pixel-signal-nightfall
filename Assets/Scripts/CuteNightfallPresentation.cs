@@ -8,15 +8,18 @@ using UnityEngine;
 /// Presentation replacement for the original prototype.
 /// It keeps PixelSurvivorGame as the gameplay simulation, suppresses its developer HUD,
 /// reskins every runtime-generated object, and draws a compact fantasy-life UI.
-/// The direction is an original soft Celtic fairytale look: warm parchment, wood,
-/// flowers, fireflies and readable chibi silhouettes. No third-party game assets are used.
+/// Authored Nightfall Meadow assets are preferred at runtime, with the procedural
+/// pixel kit retained as a safe fallback for a clean first import. No third-party
+/// game assets are used.
 /// </summary>
 [DefaultExecutionOrder(10000)]
 public sealed class CuteNightfallPresentation : MonoBehaviour
 {
     private const BindingFlags InstancePrivate = BindingFlags.Instance | BindingFlags.NonPublic;
     private const float ReferenceWidth = 960f;
-    private const float ReferenceHeight = 600f;
+    // Match the authored 480x270 / 16:9 composition so the HUD scales cleanly
+    // at 960x540, 1280x720 and 1920x1080 without editor letterboxing.
+    private const float ReferenceHeight = 540f;
 
     private Component simulation;
     private MethodInfo simulationUpdate;
@@ -40,6 +43,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Sprite magnetIcon;
     private Sprite heartIcon;
     private Sprite bootIcon;
+    private Sprite pulseIcon;
+
+    private Texture2D authoredBackground;
+    private Texture2D authoredSpriteSheet;
 
     private Texture2D woodPanel;
     private Texture2D parchmentPanel;
@@ -150,6 +157,28 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void BuildSprites()
     {
+        authoredSpriteSheet = Resources.Load<Texture2D>("NightfallMeadow/sprite_sheet_256");
+        if (authoredSpriteSheet != null)
+        {
+            heroSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Meadow Courier", 0, 1);
+            portraitSprite = heroSprite;
+            slimeSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Dusk Slime", 0, 2);
+            hornSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Moonhorn", 5, 2);
+            sparkSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Mint Star Spark", 0, 3);
+            emberSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Coral Star Spark", 3, 3);
+            shardSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Moon Dew", 1, 3);
+            chestSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Story Chest", 4, 4);
+            orbitSprite = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Fairy Flame", 0, 5);
+
+            wandIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Star Wand Icon", 0, 4);
+            ringIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Hearth Notes Icon", 1, 4);
+            magnetIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Shepherd Crook Icon", 2, 4);
+            heartIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Berry Basket Icon", 3, 4);
+            bootIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Sewing Needle Icon", 5, 4);
+            pulseIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Protective Pulse Icon", 1, 5);
+            return;
+        }
+
         Dictionary<char, Color> hero = new Dictionary<char, Color>
         {
             { 'O', CutePixelKit.Ink }, { 'H', CutePixelKit.Hex("725047") },
@@ -266,11 +295,32 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             "Boot Icon",
             new[] { "..BBB..", "..BBB..", "..BBB..", "..BBBB.", ".BBBBB.", "BBBBBB.", "......." },
             new Dictionary<char, Color> { { 'B', CutePixelKit.Hex("7A5141") } }, 12f);
+        pulseIcon = orbitSprite;
     }
 
     private void BuildFairytaleField()
     {
         GameObject root = new GameObject("Fairytale Meadow");
+
+        authoredBackground = Resources.Load<Texture2D>("NightfallMeadow/background_moonlit_clearing_480x270");
+        if (authoredBackground != null)
+        {
+            authoredBackground.filterMode = FilterMode.Point;
+            authoredBackground.wrapMode = TextureWrapMode.Clamp;
+            Sprite backgroundSprite = Sprite.Create(
+                authoredBackground,
+                new Rect(0f, 0f, authoredBackground.width, authoredBackground.height),
+                new Vector2(0.5f, 0.5f),
+                32f,
+                0,
+                SpriteMeshType.FullRect);
+            float cameraHeight = 5.2f * 2f;
+            float authoredHeight = authoredBackground.height / 32f;
+            float backgroundScale = cameraHeight / authoredHeight;
+            CutePixelKit.SpriteObject(root.transform, "Moonlit Clearing", backgroundSprite, Vector2.zero, backgroundScale, -45);
+            return;
+        }
+
         CutePixelKit.RectObject(root.transform, "Meadow Ground", Vector2.zero, new Vector2(15.8f, 9.0f), CutePixelKit.Hex("273B36"), -42);
         CutePixelKit.RectObject(root.transform, "Moon Wash", new Vector2(1.7f, 1.1f), new Vector2(9.4f, 5.8f), new Color(0.30f, 0.42f, 0.48f, 0.18f), -41);
 
@@ -438,10 +488,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
         DrawLoadout();
 
-        DrawBar(new Rect(18f, 574f, 924f, 10f), xp / (float)xpToNext, xpFill);
-        GUI.Label(new Rect(18f, 550f, 300f, 20f), "Moon dew  " + xp + " / " + xpToNext, tinyStyle);
-        GUI.Label(new Rect(720f, 550f, 222f, 20f), "Pulse  " + Mathf.RoundToInt(pulse) + "%", MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleRight, false));
-        DrawBar(new Rect(822f, 541f, 120f, 7f), pulse / 100f, pulseFill);
+        DrawBar(new Rect(18f, 516f, 924f, 9f), xp / (float)xpToNext, xpFill);
+        GUI.Label(new Rect(18f, 492f, 300f, 20f), "Moon dew  " + xp + " / " + xpToNext, tinyStyle);
+        GUI.Label(new Rect(720f, 492f, 222f, 20f), "Pulse  " + Mathf.RoundToInt(pulse) + "%", MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleRight, false));
+        DrawBar(new Rect(822f, 483f, 120f, 7f), pulse / 100f, pulseFill);
     }
 
     private void DrawLoadout()
@@ -453,12 +503,14 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         float move = GetFloat("moveSpeed");
         int maxHealth = GetInt("maxHealth");
 
-        float x = 342f;
-        DrawSlot(new Rect(x, 520f, 48f, 48f), wandIcon, evolved ? "E" : Mathf.Max(1, wandLevel).ToString());
-        DrawSlot(new Rect(x + 54f, 520f, 48f, 48f), ring ? ringIcon : null, ring ? "1" : "");
-        DrawSlot(new Rect(x + 108f, 520f, 48f, 48f), magnet > 1.5f ? magnetIcon : null, magnet > 1.5f ? "+" : "");
-        DrawSlot(new Rect(x + 162f, 520f, 48f, 48f), maxHealth > 100 ? heartIcon : null, maxHealth > 100 ? "+" : "");
-        DrawSlot(new Rect(x + 216f, 520f, 48f, 48f), move > 4.2f ? bootIcon : null, move > 4.2f ? "+" : "");
+        float x = 321f;
+        const float y = 465f;
+        DrawSlot(new Rect(x, y, 48f, 48f), wandIcon, evolved ? "E" : Mathf.Max(1, wandLevel).ToString());
+        DrawSlot(new Rect(x + 54f, y, 48f, 48f), ring ? ringIcon : null, ring ? "1" : "");
+        DrawSlot(new Rect(x + 108f, y, 48f, 48f), magnet > 1.5f ? magnetIcon : null, magnet > 1.5f ? "+" : "");
+        DrawSlot(new Rect(x + 162f, y, 48f, 48f), maxHealth > 100 ? heartIcon : null, maxHealth > 100 ? "+" : "");
+        DrawSlot(new Rect(x + 216f, y, 48f, 48f), move > 4.2f ? bootIcon : null, move > 4.2f ? "+" : "");
+        DrawSlot(new Rect(x + 270f, y, 48f, 48f), pulseIcon != null ? pulseIcon : orbitSprite, "");
     }
 
     private void DrawSlot(Rect rect, Sprite icon, string badge)

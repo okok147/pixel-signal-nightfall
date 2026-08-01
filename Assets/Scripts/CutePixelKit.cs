@@ -112,6 +112,40 @@ public static class CutePixelKit
         return sprite;
     }
 
+    /// <summary>
+    /// Creates a crisp sprite from the authored 32px logical-cell sheet.
+    /// The one-pixel inset keeps reference-cell guide lines out of runtime sprites.
+    /// </summary>
+    public static Sprite CreateAtlasSprite(
+        Texture2D atlas,
+        string name,
+        int column,
+        int rowFromTop,
+        int cellSize = 32,
+        float pixelsPerUnit = 32f)
+    {
+        if (atlas == null) return null;
+
+        atlas.filterMode = FilterMode.Point;
+        atlas.wrapMode = TextureWrapMode.Clamp;
+
+        int inset = Mathf.Min(1, Mathf.Max(0, cellSize / 8));
+        int x = column * cellSize + inset;
+        int y = atlas.height - ((rowFromTop + 1) * cellSize) + inset;
+        int size = cellSize - inset * 2;
+        if (x < 0 || y < 0 || x + size > atlas.width || y + size > atlas.height) return null;
+
+        Sprite sprite = Sprite.Create(
+            atlas,
+            new Rect(x, y, size, size),
+            new Vector2(0.5f, 0.5f),
+            pixelsPerUnit,
+            0,
+            SpriteMeshType.FullRect);
+        sprite.name = name;
+        return sprite;
+    }
+
     public static Texture2D SolidTexture(Color color, string name = "Cute Solid")
     {
         Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
