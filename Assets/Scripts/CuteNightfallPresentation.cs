@@ -79,6 +79,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private readonly Dictionary<GameObject, Vector3> actorBaseScales = new Dictionary<GameObject, Vector3>();
     private readonly Dictionary<GameObject, PolygonActorRig> polygonActorRigs = new Dictionary<GameObject, PolygonActorRig>();
     private readonly Dictionary<GameObject, Vector3> polygonLastPositions = new Dictionary<GameObject, Vector3>();
+    private readonly List<GameObject> staleActorObjects = new List<GameObject>();
 
     private sealed class PolygonActorRig
     {
@@ -1903,6 +1904,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void UpdatePolygonActorMotion()
     {
+        CleanupDeadActorPresentation();
         if (polygonActorRigs.Count == 0) return;
         float dt = Mathf.Max(0.001f, Time.unscaledDeltaTime);
         float now = Time.unscaledTime;
@@ -1941,6 +1943,31 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 float wingBeat = 1f + Mathf.Sin(now * 8.5f + rig.Phase) * 0.12f;
                 rig.Silhouette.transform.localScale = new Vector3(wingBeat, 1f, 1f);
             }
+        }
+    }
+
+    private void CleanupDeadActorPresentation()
+    {
+        staleActorObjects.Clear();
+        foreach (KeyValuePair<GameObject, GameObject> pair in actorShadowObjects)
+        {
+            if (pair.Key != null) continue;
+            if (pair.Value != null) Destroy(pair.Value);
+            staleActorObjects.Add(pair.Key);
+        }
+
+        foreach (KeyValuePair<GameObject, PolygonActorRig> pair in polygonActorRigs)
+        {
+            if (pair.Key != null) continue;
+            staleActorObjects.Add(pair.Key);
+        }
+
+        for (int i = 0; i < staleActorObjects.Count; i++)
+        {
+            GameObject staleActor = staleActorObjects[i];
+            actorShadowObjects.Remove(staleActor);
+            polygonActorRigs.Remove(staleActor);
+            polygonLastPositions.Remove(staleActor);
         }
     }
 
