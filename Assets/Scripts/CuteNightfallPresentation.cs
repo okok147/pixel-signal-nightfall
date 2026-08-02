@@ -33,8 +33,21 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Sprite heroSprite;
     private Sprite slimeSprite;
     private Sprite hornSprite;
+    private Sprite woolSprite;
+    private Sprite mothSprite;
+    private Sprite mushroomSprite;
+    private Sprite witchSprite;
+    private Sprite bossSprite;
     private Sprite sparkSprite;
     private Sprite emberSprite;
+    private Sprite noteSprite;
+    private Sprite berrySprite;
+    private Sprite needleSprite;
+    private Sprite curseSeedSprite;
+    private Sprite bossOrbSprite;
+    private Sprite hitSparkSprite;
+    private Sprite bossBurstSprite;
+    private Sprite telegraphSprite;
     private Sprite shardSprite;
     private Sprite chestSprite;
     private Sprite orbitSprite;
@@ -45,6 +58,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Sprite heartIcon;
     private Sprite bootIcon;
     private Sprite pulseIcon;
+    private Sprite notesIcon;
+    private Sprite berryIcon;
+    private Sprite needleIcon;
+    private Sprite fireflyIcon;
     private Sprite[] heroFrames;
     private float heroWalkTime;
     private Vector3 lastHeroPosition;
@@ -471,10 +488,136 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             puffPalette,
             16f);
 
+        Dictionary<char, Color> woolPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline }, { 'M', CutePixelKit.MascotMint },
+            { 'C', CutePixelKit.MascotCream }, { 'R', CutePixelKit.MascotBlush }
+        };
+        woolSprite = CutePixelKit.CreateSprite(
+            "Wool Sprite",
+            new[]
+            {
+                "............", "...OOOOOO...", "..OOMMMMOO..", ".OOMMMMMMOO.",
+                "OOMMCMMCMMOO", "OMMMMMMMMMMO", "OMMRMMMMRMMO", ".OMMMMMMMMO.",
+                "..OOMMMOO...", "...OO.OO....", "............"
+            },
+            woolPalette,
+            16f);
+
+        Dictionary<char, Color> mothPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline }, { 'L', CutePixelKit.MascotLilac },
+            { 'M', CutePixelKit.MascotMint }, { 'Y', CutePixelKit.MascotGold },
+            { 'C', CutePixelKit.MascotCream }
+        };
+        mothSprite = CutePixelKit.CreateSprite(
+            "Lantern Moth",
+            new[]
+            {
+                "....O..O....", "...OO..OO...", "..OOLLLLOO..", ".OOLLLLLLOO.",
+                "OOLLYCYLLOOO", "OOLLCCCCLLOO", ".OOLLLLLLOO.",
+                "..OOYYYYOO..", "...OO..OO...", "....O..O....", "............"
+            },
+            mothPalette,
+            16f);
+
+        Dictionary<char, Color> mushroomPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline }, { 'P', CutePixelKit.MascotPink },
+            { 'R', CutePixelKit.MascotBlush }, { 'C', CutePixelKit.MascotCream },
+            { 'M', CutePixelKit.MascotMint }
+        };
+        mushroomSprite = CutePixelKit.CreateSprite(
+            "Mushroom Thief",
+            new[]
+            {
+                "....OOOO....", "..OOPPPPOO..", ".OOPPPPPPPO.", "OOPPRPPRPPOO",
+                "OOPPPPPPPPOO", "...OOCCOO...", "..OOCCCCOO..", ".OOCCMMCCOO.",
+                "..OOCCCCOO..", "...OO..OO...", "............"
+            },
+            mushroomPalette,
+            16f);
+
+        Dictionary<char, Color> witchPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline }, { 'L', CutePixelKit.MascotLilac },
+            { 'C', CutePixelKit.MascotCream }, { 'P', CutePixelKit.MascotPink },
+            { 'Y', CutePixelKit.MascotGold }
+        };
+        witchSprite = CutePixelKit.CreateSprite(
+            "Hedge Witch",
+            new[]
+            {
+                "....OOOO....", "...OLLLLO...", "..OLLLLLLLO..", ".OLLLLLLLLLO.",
+                "OOLLCYCLLOOO", "OOCCPPCCOOO.", ".OOCCCCCCOO.", "..OOPPPPOO..",
+                ".OOPPPPPPO..", "OOPPPPPPPPOO", "............"
+            },
+            witchPalette,
+            16f);
+
+        Dictionary<char, Color> bossPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline }, { 'P', CutePixelKit.MascotPink },
+            { 'R', CutePixelKit.MascotBlush }, { 'L', CutePixelKit.MascotLilac },
+            { 'C', CutePixelKit.MascotCream }, { 'Y', CutePixelKit.MascotGold },
+            { 'M', CutePixelKit.MascotMint }
+        };
+        bossSprite = CutePixelKit.CreateSprite(
+            "Mallow Warden",
+            new[]
+            {
+                "....OO....OO....", "...OOOYYYYOOO...", "..OOYYYYYYYYOO..", ".OOYYYYYYYYYYOO.",
+                "OOYYLLCCLLYYOOOO", "OOYYCCCCCCYYOOOO", "OOYYRCCCCRYYOOOO", ".OOYYYYYYYYYYOO.",
+                "..OOPPPPPPPPOO..", "..OPPPPPPPPPPO..", "...OOOMMMOOO....", "....OOO..OOO....",
+                "................", "................", "................", "................"
+            },
+            bossPalette,
+            16f);
+
         sparkSprite = CutePixelKit.CreateSprite(
             "Tiny Mint Star",
             new[] { "...W...", "..WMW..", ".WMMMW.", "WMMWMMW", ".WMMMW.", "..WMW..", "...W..." },
             new Dictionary<char, Color> { { 'W', CutePixelKit.White }, { 'M', CutePixelKit.MascotMint } },
+            16f);
+        noteSprite = CutePixelKit.CreateSprite(
+            "Tiny Hearth Note",
+            new[] { "...P...", "..PPP..", ".PPWPP.", "..PPP..", "...P...", "......." },
+            new Dictionary<char, Color> { { 'P', CutePixelKit.MascotPink }, { 'W', CutePixelKit.White } },
+            16f);
+        berrySprite = CutePixelKit.CreateSprite(
+            "Tiny Berry Toss",
+            new[] { "..PP..", ".PPPP.", "PPWPPP", ".PPPP.", "..PP..", "......" },
+            new Dictionary<char, Color> { { 'P', CutePixelKit.MascotBlush }, { 'W', CutePixelKit.White } },
+            16f);
+        needleSprite = CutePixelKit.CreateSprite(
+            "Tiny Sewing Needle",
+            new[] { ".....W", "....WW", "...WW.", "..WW..", ".WW...", "W....." },
+            new Dictionary<char, Color> { { 'W', CutePixelKit.MascotCream } },
+            16f);
+        curseSeedSprite = CutePixelKit.CreateSprite(
+            "Tiny Curse Seed",
+            new[] { "...L...", "..LLL..", ".LLPLLL", "..LLL..", "...L...", "......." },
+            new Dictionary<char, Color> { { 'L', CutePixelKit.MascotLilac }, { 'P', CutePixelKit.MascotPink } },
+            16f);
+        bossOrbSprite = CutePixelKit.CreateSprite(
+            "Tiny Boss Orb",
+            new[] { "...Y...", "..YYY..", ".YYPYY.", "..YYY..", "...Y...", "......." },
+            new Dictionary<char, Color> { { 'Y', CutePixelKit.MascotGold }, { 'P', CutePixelKit.MascotPink } },
+            16f);
+        hitSparkSprite = CutePixelKit.CreateSprite(
+            "Tiny Hit Spark",
+            new[] { "...W...", ".W...W.", ".......", ".W...W.", "...W...", "......." },
+            new Dictionary<char, Color> { { 'W', CutePixelKit.White } },
+            16f);
+        bossBurstSprite = CutePixelKit.CreateSprite(
+            "Tiny Boss Burst",
+            new[] { "...Y...", ".Y...Y.", "Y..P..Y", "...P...", "Y..P..Y", ".Y...Y.", "...Y..." },
+            new Dictionary<char, Color> { { 'Y', CutePixelKit.MascotGold }, { 'P', CutePixelKit.MascotPink } },
+            16f);
+        telegraphSprite = CutePixelKit.CreateSprite(
+            "Tiny Charge Telegraph",
+            new[] { ".PPPPPP.", "P......P", "P......P", "P......P", "P......P", "P......P", ".PPPPPP." },
+            new Dictionary<char, Color> { { 'P', new Color(0.95f, 0.48f, 0.66f, 0.72f) } },
             16f);
         emberSprite = CutePixelKit.CreateSprite(
             "Tiny Berry Heart",
@@ -521,6 +664,22 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             "Tiny Comfort Pulse Icon",
             new[] { "...L...", ".LLL...", "LLLLLLL", ".LLL...", "...L...", ".......", "......." },
             new Dictionary<char, Color> { { 'L', CutePixelKit.MascotLilac } }, 12f);
+        notesIcon = CutePixelKit.CreateSprite(
+            "Tiny Hearth Notes Icon",
+            new[] { "...P...", "..PPP..", ".PPWPP.", "..PPP..", "...P...", ".......", "......." },
+            new Dictionary<char, Color> { { 'P', CutePixelKit.MascotPink }, { 'W', CutePixelKit.White } }, 12f);
+        berryIcon = CutePixelKit.CreateSprite(
+            "Tiny Berry Weapon Icon",
+            new[] { "..PP..", ".PPPP.", "PPWPPP", ".PPPP.", "..PP..", ".......", "......." },
+            new Dictionary<char, Color> { { 'P', CutePixelKit.MascotBlush }, { 'W', CutePixelKit.White } }, 12f);
+        needleIcon = CutePixelKit.CreateSprite(
+            "Tiny Needle Weapon Icon",
+            new[] { ".....W", "....WW", "...WW.", "..WW..", ".WW...", "W.....", "......." },
+            new Dictionary<char, Color> { { 'W', CutePixelKit.MascotCream } }, 12f);
+        fireflyIcon = CutePixelKit.CreateSprite(
+            "Tiny Firefly Jar Icon",
+            new[] { "..MMM..", ".MOOOM.", ".MOYOM.", ".MOOOM.", "..MMM..", "...Y...", "......." },
+            new Dictionary<char, Color> { { 'M', CutePixelKit.MascotMint }, { 'O', CutePixelKit.MascotOutline }, { 'Y', CutePixelKit.MascotGold } }, 12f);
     }
 
     private void BuildFairytaleField()
@@ -780,13 +939,29 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             }
             else if (objectName == "Red Drone") renderer.sprite = slimeSprite;
             else if (objectName == "Brute Drone") renderer.sprite = hornSprite;
+            else if (objectName == "Wool Sprite") renderer.sprite = woolSprite;
+            else if (objectName == "Lantern Moth") renderer.sprite = mothSprite;
+            else if (objectName == "Mushroom Thief") renderer.sprite = mushroomSprite;
+            else if (objectName == "Hedge Witch") renderer.sprite = witchSprite;
+            else if (objectName == "Mallow Warden") renderer.sprite = bossSprite;
             else if (objectName == "Spark Bolt") renderer.sprite = sparkSprite;
             else if (objectName == "Cinder Bolt") renderer.sprite = emberSprite;
+            else if (objectName == "Hearth Note") renderer.sprite = noteSprite;
+            else if (objectName == "Berry Toss") renderer.sprite = berrySprite;
+            else if (objectName == "Sewing Needle") renderer.sprite = needleSprite;
+            else if (objectName == "Curse Seed") renderer.sprite = curseSeedSprite;
+            else if (objectName == "Boss Orb") renderer.sprite = bossOrbSprite;
             else if (objectName == "Signal Shard") renderer.sprite = shardSprite;
             else if (objectName == "Night Chest") renderer.sprite = chestSprite;
             else if (objectName == "Ember Ring") renderer.sprite = orbitSprite;
+            else if (objectName == "Firefly Jar") renderer.sprite = orbitSprite;
+            else if (objectName == "Hit Spark") renderer.sprite = hitSparkSprite;
+            else if (objectName == "Boss Burst") renderer.sprite = bossBurstSprite;
+            else if (objectName == "Charge Telegraph") renderer.sprite = telegraphSprite;
 
-            if (objectName == "Night Courier" || objectName == "Red Drone" || objectName == "Brute Drone")
+            if (objectName == "Night Courier" || objectName == "Red Drone" || objectName == "Brute Drone" ||
+                objectName == "Wool Sprite" || objectName == "Lantern Moth" || objectName == "Mushroom Thief" ||
+                objectName == "Hedge Witch" || objectName == "Mallow Warden")
             {
                 ApplyActorDepth(renderer);
             }
@@ -996,6 +1171,20 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         GUI.Label(new Rect(720f, 22f, 210f, 18f), "Lv. " + level + "   •   " + kills + " little foes", tinyStyle);
         GUI.Label(new Rect(720f, 42f, 210f, 14f), chests + " story chests found", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleLeft, false));
 
+        if (GetBool("bossActive"))
+        {
+            float bossHealth = GetFloat("bossHealth");
+            float bossMaxHealth = Mathf.Max(1f, GetFloat("bossMaxHealth"));
+            DrawPanel(new Rect(280f, 68f, 400f, 46f), darkPanelStyle);
+            GUI.Label(new Rect(296f, 71f, 368f, 16f), GetString("bossDisplayName"), MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.MascotPink, FontStyle.Bold, TextAnchor.MiddleCenter, false));
+            DrawBar(new Rect(302f, 92f, 356f, 10f), bossHealth / bossMaxHealth, healthFill);
+        }
+        else if (GetFloat("bossWarningTimer") > 0f)
+        {
+            DrawPanel(new Rect(302f, 68f, 356f, 32f), timerPanelStyle);
+            GUI.Label(new Rect(314f, 73f, 332f, 20f), "A LARGE SHADOW IS LISTENING", MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.MascotPink, FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        }
+
         DrawLoadout();
 
         DrawBar(new Rect(18f, 516f, 924f, 9f), xp / (float)xpToNext, xpFill);
@@ -1008,6 +1197,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         bool ring = GetBool("hasEmberRing");
         bool evolved = GetBool("cinderVolley");
+        bool notes = GetBool("hasHearthNotes");
+        bool berry = GetBool("hasBerryBasket");
+        bool needle = GetBool("hasSewingNeedle");
+        bool firefly = GetBool("hasFireflyJar");
         int wandLevel = GetInt("wandLevel");
         float magnet = GetFloat("magnetRange");
         float move = GetFloat("moveSpeed");
@@ -1016,10 +1209,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         float x = 321f;
         const float y = 465f;
         DrawSlot(new Rect(x, y, 48f, 48f), wandIcon, evolved ? "E" : Mathf.Max(1, wandLevel).ToString());
-        DrawSlot(new Rect(x + 54f, y, 48f, 48f), ring ? ringIcon : null, ring ? "1" : "");
-        DrawSlot(new Rect(x + 108f, y, 48f, 48f), magnet > 1.5f ? magnetIcon : null, magnet > 1.5f ? "+" : "");
-        DrawSlot(new Rect(x + 162f, y, 48f, 48f), maxHealth > 100 ? heartIcon : null, maxHealth > 100 ? "+" : "");
-        DrawSlot(new Rect(x + 216f, y, 48f, 48f), move > 4.2f ? bootIcon : null, move > 4.2f ? "+" : "");
+        DrawSlot(new Rect(x + 54f, y, 48f, 48f), notes ? notesIcon : ring ? ringIcon : null, notes ? "" : ring ? "1" : "");
+        DrawSlot(new Rect(x + 108f, y, 48f, 48f), berry ? berryIcon : magnet > 1.5f ? magnetIcon : null, berry ? "" : magnet > 1.5f ? "+" : "");
+        DrawSlot(new Rect(x + 162f, y, 48f, 48f), needle ? needleIcon : maxHealth > 180 ? heartIcon : null, needle ? "" : maxHealth > 180 ? "+" : "");
+        DrawSlot(new Rect(x + 216f, y, 48f, 48f), firefly ? fireflyIcon : move > 4.2f ? bootIcon : null, firefly ? "" : move > 4.2f ? "+" : "");
         DrawSlot(new Rect(x + 270f, y, 48f, 48f), pulseIcon != null ? pulseIcon : orbitSprite, "");
     }
 
@@ -1071,6 +1264,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Sprite IconForChoice(string title, string tag)
     {
         string key = (title + " " + tag).ToLowerInvariant();
+        if (key.Contains("hearth") || key.Contains("notes")) return notesIcon;
+        if (key.Contains("berry") || key.Contains("basket")) return berryIcon;
+        if (key.Contains("needle") || key.Contains("sewing")) return needleIcon;
+        if (key.Contains("firefly") || key.Contains("jar")) return fireflyIcon;
+        if (key.Contains("armor") || key.Contains("recovery") || key.Contains("tea")) return heartIcon;
+        if (key.Contains("luck") || key.Contains("thread")) return magnetIcon;
+        if (key.Contains("wide") || key.Contains("area")) return pulseIcon;
         if (key.Contains("ring") || key.Contains("ember")) return ringIcon;
         if (key.Contains("gravity") || key.Contains("magnet")) return magnetIcon;
         if (key.Contains("wind") || key.Contains("vital")) return heartIcon;

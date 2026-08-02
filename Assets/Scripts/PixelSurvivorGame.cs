@@ -16,7 +16,23 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     private enum EnemyKind
     {
         Drone,
-        Brute
+        Brute,
+        Wool,
+        Moth,
+        Mushroom,
+        Witch,
+        Boss
+    }
+
+    private enum ProjectileKind
+    {
+        Spark,
+        Cinder,
+        HearthNote,
+        Berry,
+        Needle,
+        CurseSeed,
+        BossOrb
     }
 
     private enum UpgradeType
@@ -28,7 +44,15 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         Magnet,
         Vitality,
         Haste,
-        CinderVolley
+        CinderVolley,
+        HearthNotes,
+        BerryBasket,
+        SewingNeedle,
+        FireflyJar,
+        Armor,
+        Recovery,
+        Luck,
+        Area
     }
 
     private sealed class Enemy
@@ -42,6 +66,13 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         public float Speed;
         public Vector2 Velocity;
         public float RingCooldown;
+        public float AbilityTimer;
+        public float ShotTimer;
+        public float MovePhase;
+        public float OrbitAngle;
+        public int AbilityPhase;
+        public Vector2 ChargeTarget;
+        public Vector2 FormationOffset;
     }
 
     private sealed class Projectile
@@ -51,7 +82,28 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         public float Damage;
         public float Life;
         public int Pierce;
+        public ProjectileKind Kind;
+        public float HitRadius;
+        public bool Homing;
         public readonly HashSet<int> HitIds = new HashSet<int>();
+    }
+
+    private sealed class EnemyProjectile
+    {
+        public GameObject Object;
+        public Vector2 Velocity;
+        public float Damage;
+        public float Life;
+        public float Radius;
+    }
+
+    private sealed class Effect
+    {
+        public GameObject Object;
+        public Color Color;
+        public Vector3 BaseScale;
+        public float Life;
+        public float MaxLife;
     }
 
     private sealed class Gem
@@ -106,6 +158,8 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
     private readonly List<Enemy> enemies = new List<Enemy>();
     private readonly List<Projectile> projectiles = new List<Projectile>();
+    private readonly List<EnemyProjectile> enemyProjectiles = new List<EnemyProjectile>();
+    private readonly List<Effect> effects = new List<Effect>();
     private readonly List<Gem> gems = new List<Gem>();
     private readonly List<Chest> chests = new List<Chest>();
     private readonly List<GameObject> decoration = new List<GameObject>();
@@ -129,6 +183,14 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     private Sprite bruteSprite;
     private Sprite boltSprite;
     private Sprite emberBoltSprite;
+    private Sprite noteBoltSprite;
+    private Sprite berryBoltSprite;
+    private Sprite needleSprite;
+    private Sprite curseSeedSprite;
+    private Sprite bossOrbSprite;
+    private Sprite hitEffectSprite;
+    private Sprite bossBurstSprite;
+    private Sprite telegraphSprite;
     private Sprite gemSprite;
     private Sprite chestSprite;
     private Sprite ringSprite;
@@ -197,6 +259,29 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     private float emberDamage;
     private bool hasEmberRing;
     private bool cinderVolley;
+    private bool hasHearthNotes;
+    private bool hasBerryBasket;
+    private bool hasSewingNeedle;
+    private bool hasFireflyJar;
+    private int hearthNotesLevel;
+    private int berryBasketLevel;
+    private int sewingNeedleLevel;
+    private int fireflyJarLevel;
+    private int armorLevel;
+    private int luckLevel;
+    private float recoveryRate;
+    private float areaMultiplier;
+    private float hearthNotesTimer;
+    private float berryBasketTimer;
+    private float sewingNeedleTimer;
+    private float fireflyTimer;
+    private GameObject[] fireflyObjects;
+    private bool bossActive;
+    private bool bossSpawned;
+    private float bossHealth;
+    private float bossMaxHealth;
+    private string bossDisplayName = string.Empty;
+    private float bossWarningTimer;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Boot()
@@ -283,6 +368,39 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             "Cinder Bolt",
             new[] { "..F..", ".FFF.", "FFGFF", ".FFF.", "..F.." },
             new Dictionary<char, Color> { { 'F', Flame }, { 'G', Gold } }, 16f);
+
+        noteBoltSprite = CreatePixelSprite(
+            "Hearth Note",
+            new[] { "..C..", ".CCC.", "CCWCC", ".CCC.", "..C.." },
+            new Dictionary<char, Color> { { 'C', new Color(1f, 0.55f, 0.74f, 1f) }, { 'W', White } }, 16f);
+        berryBoltSprite = CreatePixelSprite(
+            "Berry Toss",
+            new[] { ".FF.", "FGGF", "FGGF", ".FF.", "...." },
+            new Dictionary<char, Color> { { 'F', Magenta }, { 'G', Gold } }, 16f);
+        needleSprite = CreatePixelSprite(
+            "Sewing Needle",
+            new[] { "....W", "...WW", "..WW.", ".WW..", "W...." },
+            new Dictionary<char, Color> { { 'W', White } }, 16f);
+        curseSeedSprite = CreatePixelSprite(
+            "Curse Seed",
+            new[] { "..F..", ".FGF.", "FGGFG", ".FGF.", "..F.." },
+            new Dictionary<char, Color> { { 'F', new Color(0.76f, 0.32f, 0.86f, 1f) }, { 'G', Magenta } }, 16f);
+        bossOrbSprite = CreatePixelSprite(
+            "Boss Orb",
+            new[] { "..G..", ".GFG.", "GFFF G".Replace(" ", string.Empty), ".GFG.", "..G.." },
+            new Dictionary<char, Color> { { 'F', Flame }, { 'G', Gold } }, 16f);
+        hitEffectSprite = CreatePixelSprite(
+            "Hit Spark",
+            new[] { "..W..", ".W.W.", "W...W", ".W.W.", "..W.." },
+            new Dictionary<char, Color> { { 'W', White } }, 16f);
+        bossBurstSprite = CreatePixelSprite(
+            "Boss Burst",
+            new[] { "...G...", ".G...G.", "G..F..G", "...F...", "G..F..G", ".G...G.", "...G..." },
+            new Dictionary<char, Color> { { 'F', Flame }, { 'G', Gold } }, 16f);
+        telegraphSprite = CreatePixelSprite(
+            "Charge Telegraph",
+            new[] { ".GGGGG.", "G.....G", "G.....G", "G.....G", "G.....G", "G.....G", ".GGGGG." },
+            new Dictionary<char, Color> { { 'G', new Color(1f, 0.40f, 0.62f, 0.65f) } }, 16f);
 
         gemSprite = CreatePixelSprite(
             "Signal Shard",
@@ -422,7 +540,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         // Give the first level-up window enough breathing room for a new player.
         // The run should teach movement and pulse timing before contact damage
         // becomes the dominant outcome.
-        maxHealth = 120;
+        maxHealth = 180;
         playerHealth = maxHealth;
         weaponDamage = 14f;
         weaponCooldown = 0.72f;
@@ -433,6 +551,28 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         emberDamage = 10f;
         hasEmberRing = false;
         cinderVolley = false;
+        hasHearthNotes = false;
+        hasBerryBasket = false;
+        hasSewingNeedle = false;
+        hasFireflyJar = false;
+        hearthNotesLevel = 0;
+        berryBasketLevel = 0;
+        sewingNeedleLevel = 0;
+        fireflyJarLevel = 0;
+        armorLevel = 0;
+        luckLevel = 0;
+        recoveryRate = 0f;
+        areaMultiplier = 1f;
+        hearthNotesTimer = 1.5f;
+        berryBasketTimer = 2.8f;
+        sewingNeedleTimer = 2.0f;
+        fireflyTimer = 0.4f;
+        bossActive = false;
+        bossSpawned = false;
+        bossHealth = 0f;
+        bossMaxHealth = 1f;
+        bossDisplayName = string.Empty;
+        bossWarningTimer = 0f;
         playerVelocity = Vector2.zero;
         lastAim = Vector2.up;
         nextEnemyId = 1;
@@ -452,9 +592,12 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         player.SetActive(true);
         ClearHazards();
         ClearProjectiles();
+        ClearEnemyProjectiles();
+        ClearEffects();
         ClearGems();
         ClearChests();
         ClearRingObjects();
+        ClearFireflyObjects();
         SpawnEnemy(new Vector2(-2.8f, 2.8f));
         SpawnEnemy(new Vector2(5.3f, 1.0f));
         SpawnEnemy(new Vector2(3.2f, -2.9f));
@@ -512,16 +655,22 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         pulseCooldown = Mathf.Max(0f, pulseCooldown - dt);
         contactCooldown = Mathf.Max(0f, contactCooldown - dt);
         toastTimer = Mathf.Max(0f, toastTimer - dt);
+        bossWarningTimer = Mathf.Max(0f, bossWarningTimer - dt);
+        if (recoveryRate > 0f) playerHealth = Mathf.Min(maxHealth, playerHealth + recoveryRate * dt);
 
         MovePlayer(dt);
         UpdateSpawnPressure(dt);
         MoveEnemies(dt);
         FireWeapon(dt);
         UpdateProjectiles(dt);
+        UpdateEnemyProjectiles(dt);
         UpdateGems(dt);
         UpdateChests(dt);
         UpdateEmberRing(dt);
+        UpdateFireflyJar(dt);
         UpdatePulse(dt);
+        UpdateEffects(dt);
+        SyncBossTelemetry();
 
         if (timeLeft <= 0f) Finish(GameMode.Won);
     }
@@ -559,12 +708,15 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
     private void UpdateSpawnPressure(float dt)
     {
+        if (!bossSpawned && elapsed >= 42f) SpawnBoss();
+
         spawnTimer -= dt;
         if (spawnTimer <= 0f && enemies.Count < 86)
         {
             SpawnEnemy(Vector2.zero);
-            if (elapsed > 72f && Random.value < 0.30f && enemies.Count < 86) SpawnEnemy(Vector2.zero);
-            spawnTimer = Mathf.Max(0.22f, 0.78f - elapsed * 0.0027f);
+            if (elapsed > 64f && Random.value < 0.34f && enemies.Count < 86) SpawnEnemy(Vector2.zero);
+            if (elapsed > 112f && Random.value < 0.22f && enemies.Count < 86) SpawnEnemy(Vector2.zero);
+            spawnTimer = Mathf.Max(0.24f, 0.80f - elapsed * 0.0028f);
         }
 
         chestTimer -= dt;
@@ -587,22 +739,151 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             else position = new Vector2(Random.Range(ArenaLeft, ArenaRight), ArenaBottom - 0.9f);
         }
 
-        bool brute = elapsed > 38f && Random.value < Mathf.Min(0.22f, elapsed / 700f);
+        EnemyKind kind = ChooseEnemyKind();
         float healthScale = 1f + elapsed * 0.005f;
+        float radius;
+        float speed;
+        float health;
+        float scale;
+        switch (kind)
+        {
+            case EnemyKind.Brute:
+                radius = 0.68f;
+                speed = 0.72f + elapsed * 0.001f;
+                health = 78f;
+                scale = 1.02f;
+                break;
+            case EnemyKind.Wool:
+                radius = 0.58f;
+                speed = 0.70f + elapsed * 0.001f;
+                health = 34f;
+                scale = 0.90f;
+                break;
+            case EnemyKind.Moth:
+                radius = 0.44f;
+                speed = 1.18f + elapsed * 0.002f;
+                health = 24f;
+                scale = 0.78f;
+                break;
+            case EnemyKind.Mushroom:
+                radius = 0.50f;
+                speed = 1.38f + elapsed * 0.0015f;
+                health = 30f;
+                scale = 0.84f;
+                break;
+            case EnemyKind.Witch:
+                radius = 0.52f;
+                speed = 0.62f + elapsed * 0.0008f;
+                health = 48f;
+                scale = 0.88f;
+                break;
+            default:
+                radius = 0.46f;
+                speed = 1.08f + elapsed * 0.002f;
+                health = 18f;
+                scale = 0.78f;
+                break;
+        }
         Enemy enemy = new Enemy
         {
             Id = nextEnemyId++,
-            Kind = brute ? EnemyKind.Brute : EnemyKind.Drone,
-            Radius = brute ? 0.65f : 0.46f,
-            Speed = brute ? 0.75f + elapsed * 0.001f : 1.15f + elapsed * 0.002f,
-            Health = (brute ? 55f : 18f) * healthScale,
-            Velocity = Vector2.zero
+            Kind = kind,
+            Radius = radius,
+            Speed = speed,
+            Health = health * healthScale,
+            Velocity = Vector2.zero,
+            AbilityTimer = Random.Range(1.6f, 4.4f),
+            ShotTimer = Random.Range(1.4f, 2.8f),
+            MovePhase = Random.Range(0f, Mathf.PI * 2f),
+            OrbitAngle = Random.Range(0f, Mathf.PI * 2f),
+            FormationOffset = Vector2.zero
         };
-        Sprite sprite = brute ? bruteSprite : droneSprite;
-        float scale = brute ? 0.98f : 0.78f;
-        enemy.Object = CreateSpriteObject(brute ? "Brute Drone" : "Red Drone", sprite, position, scale, 9);
-        enemy.Shadow = CreateShadow("Drone Ground Shadow", position + new Vector2(0.08f, -0.16f), scale, 8);
+        enemy.FormationOffset = Random.insideUnitCircle * 0.8f;
+        enemy.Object = CreateSpriteObject(EnemyObjectName(kind), EnemySprite(kind), position, scale, 9);
+        enemy.Shadow = CreateShadow(EnemyObjectName(kind) + " Ground Shadow", position + new Vector2(0.08f, -0.16f), scale, 8);
         enemies.Add(enemy);
+    }
+
+    private EnemyKind ChooseEnemyKind()
+    {
+        float roll = Random.value;
+        if (elapsed < 14f) return EnemyKind.Drone;
+        if (elapsed < 28f) return roll < 0.24f ? EnemyKind.Wool : EnemyKind.Drone;
+        if (elapsed < 45f)
+        {
+            if (roll < 0.16f) return EnemyKind.Brute;
+            if (roll < 0.42f) return EnemyKind.Wool;
+            if (roll < 0.68f) return EnemyKind.Mushroom;
+            return EnemyKind.Drone;
+        }
+        if (elapsed < 82f)
+        {
+            if (roll < 0.12f) return EnemyKind.Brute;
+            if (roll < 0.30f) return EnemyKind.Witch;
+            if (roll < 0.52f) return EnemyKind.Moth;
+            if (roll < 0.72f) return EnemyKind.Mushroom;
+            return EnemyKind.Wool;
+        }
+        if (roll < 0.16f) return EnemyKind.Brute;
+        if (roll < 0.35f) return EnemyKind.Witch;
+        if (roll < 0.56f) return EnemyKind.Moth;
+        if (roll < 0.76f) return EnemyKind.Mushroom;
+        return EnemyKind.Wool;
+    }
+
+    private string EnemyObjectName(EnemyKind kind)
+    {
+        switch (kind)
+        {
+            case EnemyKind.Brute: return "Brute Drone";
+            case EnemyKind.Wool: return "Wool Sprite";
+            case EnemyKind.Moth: return "Lantern Moth";
+            case EnemyKind.Mushroom: return "Mushroom Thief";
+            case EnemyKind.Witch: return "Hedge Witch";
+            case EnemyKind.Boss: return "Mallow Warden";
+            default: return "Red Drone";
+        }
+    }
+
+    private Sprite EnemySprite(EnemyKind kind)
+    {
+        return kind == EnemyKind.Brute || kind == EnemyKind.Boss ? bruteSprite : droneSprite;
+    }
+
+    private void SpawnBoss()
+    {
+        bossSpawned = true;
+        bossActive = true;
+        bossDisplayName = "MALLOW WARDEN";
+        bossMaxHealth = 520f + elapsed * 2.2f;
+        bossHealth = bossMaxHealth;
+        bossWarningTimer = 4.2f;
+        Vector2 position = new Vector2(ArenaRight + 1.15f, Random.Range(ArenaBottom + 1.2f, ArenaTop - 1.2f));
+        Enemy boss = new Enemy
+        {
+            Id = nextEnemyId++,
+            Kind = EnemyKind.Boss,
+            Radius = 1.08f,
+            Speed = 0.60f,
+            Health = bossMaxHealth,
+            Velocity = Vector2.zero,
+            AbilityTimer = 1.2f,
+            ShotTimer = 2.0f,
+            MovePhase = 0.0f,
+            OrbitAngle = 0.0f,
+            FormationOffset = Vector2.zero
+        };
+        boss.Object = CreateSpriteObject("Mallow Warden", bossSpriteFallback(), position, 1.42f, 10);
+        boss.Shadow = CreateShadow("Mallow Warden Ground Shadow", position + new Vector2(0.08f, -0.20f), 1.42f, 8);
+        enemies.Add(boss);
+        SpawnEffect("Boss Burst", position, bossBurstSprite, 2.2f, new Color(1f, 0.50f, 0.72f, 0.92f), 0.75f);
+        toastMessage = "MALLOW WARDEN APPROACHES  //  HOLD THE LIGHT";
+        toastTimer = 4.2f;
+    }
+
+    private Sprite bossSpriteFallback()
+    {
+        return bruteSprite;
     }
 
     private void MoveEnemies(float dt)
@@ -611,61 +892,263 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         {
             Enemy enemy = enemies[i];
             if (enemy.Health <= 0f || enemy.Object == null) continue;
-            Vector2 toPlayer = (Vector2)player.transform.position - (Vector2)enemy.Object.transform.position;
-            Vector2 direction = toPlayer.sqrMagnitude > 0.001f ? toPlayer.normalized : Vector2.zero;
-            enemy.Velocity = Vector2.MoveTowards(enemy.Velocity, direction * enemy.Speed, 5.5f * dt);
+            Vector2 playerPosition = player.transform.position;
+            Vector2 enemyPosition = enemy.Object.transform.position;
+            Vector2 toPlayer = playerPosition - enemyPosition;
+            float distance = toPlayer.magnitude;
+            Vector2 direction = distance > 0.001f ? toPlayer / distance : Vector2.zero;
+            Vector2 desiredDirection = direction;
+            float desiredSpeed = enemy.Speed;
+            float acceleration = 5.5f;
+
+            enemy.AbilityTimer -= dt;
+            enemy.ShotTimer -= dt;
+            enemy.MovePhase += dt;
+
+            switch (enemy.Kind)
+            {
+                case EnemyKind.Wool:
+                    Vector2 woolTarget = playerPosition + enemy.FormationOffset * (0.75f + Mathf.Sin(elapsed * 1.4f + enemy.Id) * 0.18f);
+                    Vector2 woolToTarget = woolTarget - enemyPosition;
+                    desiredDirection = woolToTarget.sqrMagnitude > 0.001f ? woolToTarget.normalized : direction;
+                    desiredSpeed = enemy.Speed * 0.92f;
+                    break;
+                case EnemyKind.Moth:
+                    if (enemy.AbilityPhase == 0 && enemy.AbilityTimer <= 0f)
+                    {
+                        enemy.AbilityPhase = 1;
+                        enemy.AbilityTimer = 0.52f;
+                        enemy.ChargeTarget = playerPosition;
+                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 1.0f, new Color(1f, 0.55f, 0.76f, 0.76f), 0.54f);
+                    }
+                    if (enemy.AbilityPhase == 1)
+                    {
+                        desiredDirection = Vector2.zero;
+                        desiredSpeed = 0f;
+                        if (enemy.AbilityTimer <= 0f)
+                        {
+                            enemy.AbilityPhase = 2;
+                            enemy.AbilityTimer = 0.82f;
+                        }
+                    }
+                    else if (enemy.AbilityPhase == 2)
+                    {
+                        Vector2 dive = enemy.ChargeTarget - enemyPosition;
+                        desiredDirection = dive.sqrMagnitude > 0.001f ? dive.normalized : direction;
+                        desiredSpeed = enemy.Speed * 3.6f;
+                        if (enemy.AbilityTimer <= 0f)
+                        {
+                            enemy.AbilityPhase = 0;
+                            enemy.AbilityTimer = Random.Range(2.2f, 4.0f);
+                        }
+                    }
+                    else
+                    {
+                        Vector2 tangent = new Vector2(-direction.y, direction.x);
+                        desiredDirection = (direction * 0.45f + tangent * Mathf.Sin(elapsed * 2.8f + enemy.Id) * 0.85f).normalized;
+                    }
+                    break;
+                case EnemyKind.Mushroom:
+                    Vector2 wobble = new Vector2(-direction.y, direction.x) * Mathf.Sin(elapsed * 4.4f + enemy.MovePhase) * 0.88f;
+                    desiredDirection = (direction + wobble).normalized;
+                    desiredSpeed = enemy.Speed * (0.94f + Mathf.Abs(Mathf.Sin(elapsed * 2.1f + enemy.Id)) * 0.18f);
+                    break;
+                case EnemyKind.Witch:
+                    if (distance > 4.25f) desiredDirection = direction;
+                    else if (distance < 2.75f) desiredDirection = -direction;
+                    else desiredDirection = new Vector2(-direction.y, direction.x) * Mathf.Sign(Mathf.Sin(enemy.Id * 1.7f + elapsed));
+                    desiredSpeed = enemy.Speed;
+                    if (enemy.ShotTimer <= 0f)
+                    {
+                        FireEnemyProjectile(enemy, direction, false);
+                        enemy.ShotTimer = Mathf.Max(1.15f, 2.25f - elapsed * 0.002f);
+                    }
+                    break;
+                case EnemyKind.Brute:
+                    if (enemy.AbilityPhase == 0 && enemy.AbilityTimer <= 0f)
+                    {
+                        enemy.AbilityPhase = 1;
+                        enemy.AbilityTimer = 0.68f;
+                        enemy.ChargeTarget = playerPosition;
+                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 1.18f, new Color(1f, 0.58f, 0.45f, 0.84f), 0.68f);
+                    }
+                    if (enemy.AbilityPhase == 1)
+                    {
+                        desiredDirection = Vector2.zero;
+                        desiredSpeed = 0f;
+                        if (enemy.AbilityTimer <= 0f)
+                        {
+                            enemy.AbilityPhase = 2;
+                            enemy.AbilityTimer = 0.88f;
+                        }
+                    }
+                    else if (enemy.AbilityPhase == 2)
+                    {
+                        Vector2 charge = enemy.ChargeTarget - enemyPosition;
+                        desiredDirection = charge.sqrMagnitude > 0.001f ? charge.normalized : direction;
+                        desiredSpeed = enemy.Speed * 3.7f;
+                        acceleration = 14f;
+                        if (enemy.AbilityTimer <= 0f)
+                        {
+                            enemy.AbilityPhase = 0;
+                            enemy.AbilityTimer = Random.Range(2.6f, 4.2f);
+                        }
+                    }
+                    break;
+                case EnemyKind.Boss:
+                    Vector2 tangentBoss = new Vector2(-direction.y, direction.x);
+                    desiredDirection = (direction * 0.32f + tangentBoss * (0.72f + Mathf.Sin(elapsed * 1.2f) * 0.18f)).normalized;
+                    desiredSpeed = enemy.Speed + Mathf.Sin(elapsed * 1.5f) * 0.12f;
+                    if (enemy.ShotTimer <= 0f)
+                    {
+                        SpawnBossPattern(enemy);
+                        enemy.ShotTimer = Mathf.Max(1.35f, 2.65f - elapsed * 0.003f);
+                    }
+                    break;
+            }
+
+            if (desiredDirection.sqrMagnitude > 1f) desiredDirection.Normalize();
+            enemy.Velocity = Vector2.MoveTowards(enemy.Velocity, desiredDirection * desiredSpeed, acceleration * dt);
             enemy.Object.transform.position += new Vector3(enemy.Velocity.x, enemy.Velocity.y, 0f) * dt;
+            Vector3 clampedPosition = enemy.Object.transform.position;
+            clampedPosition.x = Mathf.Clamp(clampedPosition.x, ArenaLeft - 1.1f, ArenaRight + 1.1f);
+            clampedPosition.y = Mathf.Clamp(clampedPosition.y, ArenaBottom - 1.1f, ArenaTop + 1.1f);
+            enemy.Object.transform.position = clampedPosition;
             SyncShadow(enemy.Object, enemy.Shadow, new Vector2(0.08f, -0.16f));
-            enemy.Object.transform.Rotate(0f, 0f, (enemy.Kind == EnemyKind.Brute ? -28f : 64f) * dt);
+            float rotation = enemy.Kind == EnemyKind.Brute || enemy.Kind == EnemyKind.Boss ? -24f : 52f;
+            if (enemy.Kind == EnemyKind.Moth) rotation = enemy.AbilityPhase == 2 ? -95f : 78f;
+            if (enemy.Kind == EnemyKind.Witch) rotation = -36f;
+            enemy.Object.transform.Rotate(0f, 0f, rotation * dt);
             enemy.RingCooldown = Mathf.Max(0f, enemy.RingCooldown - dt);
 
             if (contactCooldown <= 0f && Vector2.Distance(player.transform.position, enemy.Object.transform.position) < enemy.Radius + 0.38f)
             {
-                playerHealth -= enemy.Kind == EnemyKind.Brute ? 12f : 6f;
+                playerHealth -= ContactDamage(enemy.Kind) * Mathf.Max(0.35f, 1f - armorLevel * 0.12f);
                 contactCooldown = 1.15f;
                 // A hit interrupts the step but never teleports the player.
                 // Push the enemy away instead, so the player can recover in place.
                 playerVelocity = Vector2.zero;
+                SpawnEffect("Hit Spark", playerPosition, hitEffectSprite, enemy.Kind == EnemyKind.Boss ? 0.92f : 0.48f, new Color(1f, 0.70f, 0.82f, 0.94f), 0.34f);
                 Vector2 enemyAway = (Vector2)enemy.Object.transform.position - (Vector2)player.transform.position;
                 if (enemyAway.sqrMagnitude < 0.001f) enemyAway = Vector2.up;
                 enemyAway.Normalize();
                 enemy.Object.transform.position = (Vector2)player.transform.position + enemyAway * (enemy.Radius + 0.55f);
-                enemy.Velocity = enemyAway * Mathf.Max(enemy.Speed * 0.9f, 2.2f);
-                if (playerHealth <= 0f) Finish(GameMode.Lost);
+                enemy.Velocity = enemyAway * Mathf.Max(enemy.Speed * 0.9f, enemy.Kind == EnemyKind.Boss ? 2.8f : 2.2f);
+                if (enemy.AbilityPhase == 2) enemy.AbilityPhase = 0;
+                if (playerHealth <= 0f)
+                {
+                    Finish(GameMode.Lost);
+                    return;
+                }
             }
+        }
+    }
+
+    private float ContactDamage(EnemyKind kind)
+    {
+        switch (kind)
+        {
+            case EnemyKind.Brute: return 14f;
+            case EnemyKind.Boss: return 20f;
+            case EnemyKind.Witch: return 6f;
+            case EnemyKind.Moth: return 7f;
+            case EnemyKind.Mushroom: return 6f;
+            case EnemyKind.Wool: return 6f;
+            default: return 4f;
         }
     }
 
     private void FireWeapon(float dt)
     {
         weaponTimer -= dt;
-        if (weaponTimer > 0f) return;
-        weaponTimer = weaponCooldown;
-
-        Enemy nearest = FindNearestEnemy();
-        if (nearest == null) return;
-        Vector2 direction = ((Vector2)nearest.Object.transform.position - (Vector2)player.transform.position).normalized;
-        if (direction.sqrMagnitude < 0.001f) direction = lastAim;
-        lastAim = direction;
-
-        int count = projectileCount + (cinderVolley ? 1 : 0);
-        float spread = count <= 1 ? 0f : 18f;
-        for (int i = 0; i < count; i++)
+        if (weaponTimer <= 0f)
         {
-            float offset = count == 1 ? 0f : Mathf.Lerp(-spread, spread, i / (float)(count - 1));
-            Vector2 shotDirection = Quaternion.Euler(0f, 0f, offset) * direction;
-            Sprite sprite = cinderVolley ? emberBoltSprite : boltSprite;
-            GameObject projectileObject = CreateSpriteObject("Auto Bolt", sprite, player.transform.position, 0.42f, 16);
-            projectileObject.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(shotDirection.y, shotDirection.x) * Mathf.Rad2Deg - 90f);
-            projectiles.Add(new Projectile
+            weaponTimer = weaponCooldown;
+            Enemy nearest = FindNearestEnemy();
+            if (nearest != null)
             {
-                Object = projectileObject,
-                Velocity = shotDirection * projectileSpeed,
-                Damage = weaponDamage,
-                Life = 2.4f,
-                Pierce = projectilePierce
-            });
+                Vector2 direction = ((Vector2)nearest.Object.transform.position - (Vector2)player.transform.position).normalized;
+                if (direction.sqrMagnitude < 0.001f) direction = lastAim;
+                lastAim = direction;
+
+                int count = projectileCount + (cinderVolley ? 1 : 0);
+                float spread = count <= 1 ? 0f : 18f;
+                for (int i = 0; i < count; i++)
+                {
+                    float offset = count == 1 ? 0f : Mathf.Lerp(-spread, spread, i / (float)(count - 1));
+                    Vector2 shotDirection = Quaternion.Euler(0f, 0f, offset) * direction;
+                    ProjectileKind kind = cinderVolley ? ProjectileKind.Cinder : ProjectileKind.Spark;
+                    SpawnPlayerProjectile(
+                        kind,
+                        cinderVolley ? "Cinder Bolt" : "Spark Bolt",
+                        cinderVolley ? emberBoltSprite : boltSprite,
+                        shotDirection,
+                        projectileSpeed,
+                        weaponDamage,
+                        2.4f,
+                        projectilePierce,
+                        0.42f,
+                        false);
+                }
+            }
         }
+
+        hearthNotesTimer -= dt;
+        if (hasHearthNotes && hearthNotesTimer <= 0f)
+        {
+            int count = 3 + Mathf.Min(hearthNotesLevel, 3);
+            float damage = 8f + hearthNotesLevel * 4f;
+            for (int i = 0; i < count; i++)
+            {
+                float angle = i / (float)count * Mathf.PI * 2f + elapsed * 0.7f;
+                Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                SpawnPlayerProjectile(ProjectileKind.HearthNote, "Hearth Note", noteBoltSprite, direction, 4.5f, damage, 1.55f, 1, 0.30f, false);
+            }
+            hearthNotesTimer = Mathf.Max(1.45f, 3.35f - hearthNotesLevel * 0.28f);
+        }
+
+        berryBasketTimer -= dt;
+        if (hasBerryBasket && berryBasketTimer <= 0f)
+        {
+            Enemy nearest = FindNearestEnemy();
+            if (nearest != null)
+            {
+                Vector2 direction = ((Vector2)nearest.Object.transform.position - (Vector2)player.transform.position).normalized;
+                SpawnPlayerProjectile(ProjectileKind.Berry, "Berry Toss", berryBoltSprite, direction, 4.6f, 20f + berryBasketLevel * 9f, 2.9f, 1, 0.46f, true);
+            }
+            berryBasketTimer = Mathf.Max(1.65f, 4.0f - berryBasketLevel * 0.35f);
+        }
+
+        sewingNeedleTimer -= dt;
+        if (hasSewingNeedle && sewingNeedleTimer <= 0f)
+        {
+            Enemy nearest = FindNearestEnemy();
+            if (nearest != null)
+            {
+                Vector2 direction = ((Vector2)nearest.Object.transform.position - (Vector2)player.transform.position).normalized;
+                SpawnPlayerProjectile(ProjectileKind.Needle, "Sewing Needle", needleSprite, direction, 11.5f, 34f + sewingNeedleLevel * 12f, 1.65f, 3 + sewingNeedleLevel, 0.27f, false);
+            }
+            sewingNeedleTimer = Mathf.Max(1.25f, 2.7f - sewingNeedleLevel * 0.22f);
+        }
+    }
+
+    private void SpawnPlayerProjectile(ProjectileKind kind, string objectName, Sprite sprite, Vector2 direction, float speed, float damage, float life, int pierce, float scale, bool homing)
+    {
+        if (direction.sqrMagnitude < 0.001f) direction = lastAim;
+        direction.Normalize();
+        GameObject projectileObject = CreateSpriteObject(objectName, sprite, player.transform.position, scale, 16);
+        projectileObject.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
+        projectiles.Add(new Projectile
+        {
+            Object = projectileObject,
+            Velocity = direction * speed,
+            Damage = damage,
+            Life = life,
+            Pierce = pierce,
+            Kind = kind,
+            HitRadius = kind == ProjectileKind.Needle ? 0.13f : kind == ProjectileKind.Berry ? 0.25f : 0.20f,
+            Homing = homing
+        });
     }
 
     private Enemy FindNearestEnemy()
@@ -685,6 +1168,70 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         return nearest;
     }
 
+    private void FireEnemyProjectile(Enemy enemy, Vector2 direction, bool boss)
+    {
+        if (enemy == null || enemy.Object == null) return;
+        if (direction.sqrMagnitude < 0.001f) direction = Vector2.down;
+        direction.Normalize();
+        ProjectileKind kind = boss ? ProjectileKind.BossOrb : ProjectileKind.CurseSeed;
+        string objectName = boss ? "Boss Orb" : "Curse Seed";
+        Sprite sprite = boss ? bossOrbSprite : curseSeedSprite;
+        float speed = boss ? 2.9f : 3.35f;
+        float damage = boss ? 13f : 9f;
+        GameObject projectileObject = CreateSpriteObject(objectName, sprite, enemy.Object.transform.position, boss ? 0.48f : 0.32f, 17);
+        projectileObject.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
+        enemyProjectiles.Add(new EnemyProjectile
+        {
+            Object = projectileObject,
+            Velocity = direction * speed,
+            Damage = damage,
+            Life = boss ? 4.4f : 3.8f,
+            Radius = boss ? 0.30f : 0.20f
+        });
+    }
+
+    private void SpawnBossPattern(Enemy boss)
+    {
+        if (boss == null || boss.Object == null) return;
+        Vector2 bossPosition = boss.Object.transform.position;
+        Vector2 toPlayer = ((Vector2)player.transform.position - bossPosition).normalized;
+        int count = 8;
+        for (int i = 0; i < count; i++)
+        {
+            float angle = i / (float)count * Mathf.PI * 2f + elapsed * 0.42f;
+            FireEnemyProjectile(boss, new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), true);
+        }
+        FireEnemyProjectile(boss, toPlayer, true);
+        SpawnEffect("Boss Burst", bossPosition, bossBurstSprite, 1.25f, new Color(1f, 0.48f, 0.68f, 0.84f), 0.38f);
+    }
+
+    private void UpdateEnemyProjectiles(float dt)
+    {
+        for (int i = enemyProjectiles.Count - 1; i >= 0; i--)
+        {
+            EnemyProjectile projectile = enemyProjectiles[i];
+            if (projectile.Object == null || (projectile.Life -= dt) <= 0f)
+            {
+                RemoveEnemyProjectileAt(i);
+                continue;
+            }
+            projectile.Object.transform.position += new Vector3(projectile.Velocity.x, projectile.Velocity.y, 0f) * dt;
+            if (contactCooldown <= 0f && Vector2.Distance(player.transform.position, projectile.Object.transform.position) < projectile.Radius + 0.28f)
+            {
+                playerHealth -= projectile.Damage * Mathf.Max(0.35f, 1f - armorLevel * 0.12f);
+                contactCooldown = 0.9f;
+                playerVelocity = Vector2.zero;
+                SpawnEffect("Hit Spark", player.transform.position, hitEffectSprite, 0.44f, new Color(0.82f, 0.52f, 1f, 0.92f), 0.34f);
+                RemoveEnemyProjectileAt(i);
+                if (playerHealth <= 0f)
+                {
+                    Finish(GameMode.Lost);
+                    return;
+                }
+            }
+        }
+    }
+
     private void UpdateProjectiles(float dt)
     {
         defeatedBuffer.Clear();
@@ -698,16 +1245,28 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                 continue;
             }
 
+            if (projectile.Homing)
+            {
+                Enemy target = FindNearestEnemy();
+                if (target != null && target.Object != null)
+                {
+                    Vector2 toTarget = ((Vector2)target.Object.transform.position - (Vector2)projectile.Object.transform.position).normalized;
+                    float speed = projectile.Velocity.magnitude;
+                    projectile.Velocity = Vector2.Lerp(projectile.Velocity.normalized, toTarget, Mathf.Clamp01(dt * 3.4f)) * speed;
+                    projectile.Object.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(projectile.Velocity.y, projectile.Velocity.x) * Mathf.Rad2Deg - 90f);
+                }
+            }
             projectile.Object.transform.position += new Vector3(projectile.Velocity.x, projectile.Velocity.y, 0f) * dt;
             bool consumed = false;
             foreach (Enemy enemy in enemies)
             {
                 if (enemy.Health <= 0f || enemy.Object == null || projectile.HitIds.Contains(enemy.Id)) continue;
-                if (Vector2.Distance(projectile.Object.transform.position, enemy.Object.transform.position) > enemy.Radius + 0.20f) continue;
+                if (Vector2.Distance(projectile.Object.transform.position, enemy.Object.transform.position) > enemy.Radius + projectile.HitRadius) continue;
 
                 projectile.HitIds.Add(enemy.Id);
                 projectile.Pierce -= 1;
                 enemy.Health -= projectile.Damage;
+                SpawnEffect("Hit Spark", enemy.Object.transform.position, hitEffectSprite, enemy.Kind == EnemyKind.Boss ? 0.60f : 0.30f, projectile.Kind == ProjectileKind.Needle ? new Color(1f, 0.92f, 0.70f, 0.96f) : new Color(1f, 0.72f, 0.86f, 0.90f), 0.28f);
                 if (enemy.Health <= 0f && !defeatedBuffer.Contains(enemy)) defeatedBuffer.Add(enemy);
                 if (projectile.Pierce <= 0)
                 {
@@ -731,11 +1290,30 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         if (enemy.Object != null) Destroy(enemy.Object);
         if (enemy.Shadow != null) Destroy(enemy.Shadow);
         enemies.Remove(enemy);
-        int value = enemy.Kind == EnemyKind.Brute ? 4 : 1;
+        if (enemy.Kind == EnemyKind.Boss)
+        {
+            bossActive = false;
+            bossHealth = 0f;
+            score += 1500;
+            kills += 5;
+            SpawnEffect("Boss Burst", position, bossBurstSprite, 2.8f, new Color(1f, 0.70f, 0.84f, 1f), 0.9f);
+            for (int i = 0; i < 6; i++)
+            {
+                Vector2 drop = position + Random.insideUnitCircle * 0.75f;
+                SpawnGem(drop, 5);
+            }
+            SpawnChest(position);
+            toastMessage = "MALLOW WARDEN FELLED  //  RELAY SURGE +1500";
+            toastTimer = 4.0f;
+            return;
+        }
+
+        int value = enemy.Kind == EnemyKind.Brute || enemy.Kind == EnemyKind.Witch ? 4 : enemy.Kind == EnemyKind.Moth ? 2 : 1;
         SpawnGem(position, value);
         kills++;
-        score += enemy.Kind == EnemyKind.Brute ? 30 : 10;
-        if (enemy.Kind == EnemyKind.Brute || Random.value < 0.025f) SpawnChest(position);
+        score += enemy.Kind == EnemyKind.Brute ? 30 : enemy.Kind == EnemyKind.Witch ? 24 : enemy.Kind == EnemyKind.Moth ? 18 : 10;
+        float chestChance = 0.025f + luckLevel * 0.018f;
+        if (enemy.Kind == EnemyKind.Brute || enemy.Kind == EnemyKind.Witch || Random.value < chestChance) SpawnChest(position);
     }
 
     private void SpawnGem(Vector2 position, int value)
@@ -802,7 +1380,32 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             new UpgradeChoice(UpgradeType.Magnet, "PASSIVE", "GRAVITY THREAD", "+0.8 pickup radius for signal shards."),
             new UpgradeChoice(UpgradeType.Vitality, "PASSIVE", "SECOND WIND", "+25 max health and restore 25 health."),
             new UpgradeChoice(UpgradeType.Haste, "PASSIVE", "LIGHT FEET", "+0.55 movement speed."),
+            new UpgradeChoice(UpgradeType.Armor, "PASSIVE", "SOFT ARMOR", "Reduce contact and projectile damage by 12%."),
+            new UpgradeChoice(UpgradeType.Recovery, "PASSIVE", "RECOVERY TEA", "Regenerate 1.4 hearts every second."),
+            new UpgradeChoice(UpgradeType.Luck, "PASSIVE", "LUCKY THREAD", "More elite enemies drop story chests."),
+            new UpgradeChoice(UpgradeType.Area, "PASSIVE", "WIDE COMFORT", "Pulse and orbiting weapon radius +18%.")
         };
+
+        pool.Add(new UpgradeChoice(
+            UpgradeType.HearthNotes,
+            "WEAPON",
+            hasHearthNotes ? "HEARTH NOTES +" + (hearthNotesLevel + 1) : "HEARTH NOTES",
+            hasHearthNotes ? "Notes fire faster and gain another warm projectile." : "Every few seconds, send a radial ring of warm notes."));
+        pool.Add(new UpgradeChoice(
+            UpgradeType.BerryBasket,
+            "WEAPON",
+            hasBerryBasket ? "BERRY BASKET +" + (berryBasketLevel + 1) : "BERRY BASKET",
+            hasBerryBasket ? "Homing berry damage and cadence improve." : "Launch a homing berry at the nearest foe."));
+        pool.Add(new UpgradeChoice(
+            UpgradeType.SewingNeedle,
+            "WEAPON",
+            hasSewingNeedle ? "NEEDLE KIT +" + (sewingNeedleLevel + 1) : "SEWING NEEDLE",
+            hasSewingNeedle ? "Fast piercing needle gains damage and pierce." : "Fire a fast piercing needle through the swarm."));
+        pool.Add(new UpgradeChoice(
+            UpgradeType.FireflyJar,
+            "WEAPON",
+            hasFireflyJar ? "FIREFLY JAR +" + (fireflyJarLevel + 1) : "FIREFLY JAR",
+            hasFireflyJar ? "Add another orbiting firefly and increase its damage." : "Summon orbiting fireflies that hurt nearby foes."));
 
         if (!hasEmberRing)
         {
@@ -871,6 +1474,35 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                 weaponCooldown = Mathf.Max(0.18f, weaponCooldown * 0.75f);
                 BuildRingObjects();
                 break;
+            case UpgradeType.HearthNotes:
+                hasHearthNotes = true;
+                hearthNotesLevel++;
+                break;
+            case UpgradeType.BerryBasket:
+                hasBerryBasket = true;
+                berryBasketLevel++;
+                break;
+            case UpgradeType.SewingNeedle:
+                hasSewingNeedle = true;
+                sewingNeedleLevel++;
+                break;
+            case UpgradeType.FireflyJar:
+                hasFireflyJar = true;
+                fireflyJarLevel++;
+                BuildFireflyObjects();
+                break;
+            case UpgradeType.Armor:
+                armorLevel++;
+                break;
+            case UpgradeType.Recovery:
+                recoveryRate += 1.4f;
+                break;
+            case UpgradeType.Luck:
+                luckLevel++;
+                break;
+            case UpgradeType.Area:
+                areaMultiplier += 0.18f;
+                break;
         }
 
         toastMessage = choice.Title + " INSTALLED";
@@ -893,7 +1525,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     {
         if (!hasEmberRing || emberRingObjects == null) return;
         List<Enemy> ringDefeated = new List<Enemy>();
-        float radius = cinderVolley ? 1.45f : 1.22f;
+        float radius = (cinderVolley ? 1.45f : 1.22f) * areaMultiplier;
         for (int i = 0; i < emberRingObjects.Length; i++)
         {
             float angle = elapsed * 1.7f + i / (float)emberRingObjects.Length * Mathf.PI * 2f;
@@ -908,6 +1540,41 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             }
         }
         foreach (Enemy defeated in ringDefeated) if (enemies.Contains(defeated)) DefeatEnemy(defeated);
+    }
+
+    private void BuildFireflyObjects()
+    {
+        ClearFireflyObjects();
+        if (!hasFireflyJar) return;
+        int count = 2 + Mathf.Min(fireflyJarLevel, 4);
+        fireflyObjects = new GameObject[count];
+        for (int i = 0; i < count; i++) fireflyObjects[i] = CreateSpriteObject("Firefly Jar", ringSprite, player.transform.position, 0.42f, 15);
+    }
+
+    private void UpdateFireflyJar(float dt)
+    {
+        if (!hasFireflyJar || fireflyObjects == null) return;
+        fireflyTimer -= dt;
+        float radius = 1.75f * areaMultiplier;
+        for (int i = 0; i < fireflyObjects.Length; i++)
+        {
+            float angle = elapsed * (1.2f + fireflyJarLevel * 0.08f) + i / (float)fireflyObjects.Length * Mathf.PI * 2f;
+            fireflyObjects[i].transform.position = player.transform.position + new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f);
+        }
+
+        if (fireflyTimer > 0f) return;
+        fireflyTimer = Mathf.Max(0.30f, 0.68f - fireflyJarLevel * 0.06f);
+        List<Enemy> defeated = new List<Enemy>();
+        float damage = 6f + fireflyJarLevel * 3f;
+        foreach (Enemy enemy in enemies)
+        {
+            if (enemy.Health <= 0f || enemy.Object == null) continue;
+            if (Vector2.Distance(player.transform.position, enemy.Object.transform.position) > radius + enemy.Radius * 0.42f) continue;
+            enemy.Health -= damage;
+            SpawnEffect("Hit Spark", enemy.Object.transform.position, hitEffectSprite, 0.24f, new Color(0.70f, 1f, 0.88f, 0.84f), 0.24f);
+            if (enemy.Health <= 0f && !defeated.Contains(enemy)) defeated.Add(enemy);
+        }
+        foreach (Enemy enemy in defeated) if (enemies.Contains(enemy)) DefeatEnemy(enemy);
     }
 
     private void SpawnChest(Vector2 suggestedPosition)
@@ -953,12 +1620,13 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         pulseCooldown = 1.25f;
         pulseTimer = 0.42f;
         pulseRadius = 0.35f;
+        SpawnEffect("Boss Burst", player.transform.position, bossBurstSprite, 0.88f * areaMultiplier, new Color(0.72f, 0.92f, 1f, 0.82f), 0.42f);
         defeatedBuffer.Clear();
         foreach (Enemy enemy in enemies)
         {
-            if (enemy.Object != null && Vector2.Distance(player.transform.position, enemy.Object.transform.position) <= 2.55f)
+            if (enemy.Object != null && Vector2.Distance(player.transform.position, enemy.Object.transform.position) <= 2.55f * areaMultiplier)
             {
-                enemy.Health -= 24f;
+                enemy.Health -= 24f * areaMultiplier;
                 if (enemy.Health <= 0f && !defeatedBuffer.Contains(enemy)) defeatedBuffer.Add(enemy);
             }
         }
@@ -974,7 +1642,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             return;
         }
         pulseTimer -= dt;
-        pulseRadius += 8.6f * dt;
+        pulseRadius += 8.6f * areaMultiplier * dt;
         pulseLine.gameObject.SetActive(true);
         pulseLine.transform.position = player.transform.position;
         for (int i = 0; i < pulseLine.positionCount; i++)
@@ -985,6 +1653,64 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         Color color = new Color(Cyan.r, Cyan.g, Cyan.b, Mathf.Clamp01(pulseTimer / 0.42f));
         pulseLine.startColor = color;
         pulseLine.endColor = color;
+    }
+
+    private void SpawnEffect(string objectName, Vector2 position, Sprite sprite, float scale, Color color, float life)
+    {
+        if (effects.Count >= 120 || sprite == null) return;
+        GameObject effectObject = CreateSpriteObject(objectName, sprite, position, scale, 24);
+        SpriteRenderer renderer = effectObject.GetComponent<SpriteRenderer>();
+        if (renderer != null) renderer.color = color;
+        effects.Add(new Effect
+        {
+            Object = effectObject,
+            Color = color,
+            BaseScale = effectObject.transform.localScale,
+            Life = life,
+            MaxLife = life
+        });
+    }
+
+    private void UpdateEffects(float dt)
+    {
+        for (int i = effects.Count - 1; i >= 0; i--)
+        {
+            Effect effect = effects[i];
+            if (effect.Object == null || (effect.Life -= dt) <= 0f)
+            {
+                if (effect.Object != null) Destroy(effect.Object);
+                effects.RemoveAt(i);
+                continue;
+            }
+            float normalizedLife = Mathf.Clamp01(effect.Life / Mathf.Max(0.01f, effect.MaxLife));
+            effect.Object.transform.localScale = effect.BaseScale * (1f + (1f - normalizedLife) * 0.75f);
+            SpriteRenderer renderer = effect.Object.GetComponent<SpriteRenderer>();
+            if (renderer != null)
+            {
+                Color color = effect.Color;
+                color.a *= normalizedLife;
+                renderer.color = color;
+            }
+        }
+    }
+
+    private void SyncBossTelemetry()
+    {
+        Enemy boss = null;
+        foreach (Enemy enemy in enemies)
+        {
+            if (enemy.Kind == EnemyKind.Boss)
+            {
+                boss = enemy;
+                break;
+            }
+        }
+        bossActive = boss != null && boss.Health > 0f;
+        if (boss != null)
+        {
+            bossHealth = Mathf.Max(0f, boss.Health);
+            bossMaxHealth = Mathf.Max(1f, bossMaxHealth);
+        }
     }
 
     private void AnimateDecorativeState()
@@ -1008,6 +1734,12 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         projectiles.RemoveAt(index);
     }
 
+    private void RemoveEnemyProjectileAt(int index)
+    {
+        if (enemyProjectiles[index].Object != null) Destroy(enemyProjectiles[index].Object);
+        enemyProjectiles.RemoveAt(index);
+    }
+
     private void ClearHazards()
     {
         foreach (Enemy enemy in enemies)
@@ -1022,6 +1754,18 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     {
         foreach (Projectile projectile in projectiles) if (projectile.Object != null) Destroy(projectile.Object);
         projectiles.Clear();
+    }
+
+    private void ClearEnemyProjectiles()
+    {
+        foreach (EnemyProjectile projectile in enemyProjectiles) if (projectile.Object != null) Destroy(projectile.Object);
+        enemyProjectiles.Clear();
+    }
+
+    private void ClearEffects()
+    {
+        foreach (Effect effect in effects) if (effect.Object != null) Destroy(effect.Object);
+        effects.Clear();
     }
 
     private void ClearGems()
@@ -1049,6 +1793,13 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         if (emberRingObjects == null) return;
         foreach (GameObject ringObject in emberRingObjects) if (ringObject != null) Destroy(ringObject);
         emberRingObjects = null;
+    }
+
+    private void ClearFireflyObjects()
+    {
+        if (fireflyObjects == null) return;
+        foreach (GameObject firefly in fireflyObjects) if (firefly != null) Destroy(firefly);
+        fireflyObjects = null;
     }
 
     private GameObject CreateSpriteObject(string objectName, Sprite sprite, Vector2 position, float scale, int sortingOrder)
