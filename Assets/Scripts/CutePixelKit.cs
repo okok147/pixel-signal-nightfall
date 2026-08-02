@@ -146,6 +146,71 @@ public static class CutePixelKit
         return sprite;
     }
 
+    /// <summary>
+    /// Copies one top-left-origin region from an authored pixel atlas into a
+    /// standalone point-filtered texture. Runtime GUI styles can then use the
+    /// result as a proper sliced panel without stretching the atlas itself.
+    /// </summary>
+    public static Texture2D CropAtlasTexture(
+        Texture2D atlas,
+        string name,
+        int x,
+        int yFromTop,
+        int width,
+        int height)
+    {
+        if (atlas == null || width <= 0 || height <= 0) return null;
+
+        int y = atlas.height - yFromTop - height;
+        if (x < 0 || y < 0 || x + width > atlas.width || y + height > atlas.height) return null;
+
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        texture.name = name;
+        texture.filterMode = FilterMode.Point;
+        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.hideFlags = HideFlags.HideAndDontSave;
+        texture.SetPixels(atlas.GetPixels(x, y, width, height));
+        texture.Apply(false, false);
+        return texture;
+    }
+
+    /// <summary>
+    /// Removes baked reference copy from the centre of an authored panel while
+    /// preserving its pixel border, shadow and clipped corners. This keeps the
+    /// production frame language but leaves the content area data-driven.
+    /// </summary>
+    public static Texture2D FlattenPanelInterior(
+        Texture2D panel,
+        string name,
+        int border,
+        Color fill)
+    {
+        if (panel == null) return null;
+
+        Color[] pixels = panel.GetPixels();
+        int left = Mathf.Clamp(border, 0, panel.width / 2);
+        int right = Mathf.Clamp(border, 0, panel.width / 2);
+        int bottom = Mathf.Clamp(border, 0, panel.height / 2);
+        int top = Mathf.Clamp(border, 0, panel.height / 2);
+        for (int y = bottom; y < panel.height - top; y++)
+        {
+            for (int x = left; x < panel.width - right; x++)
+            {
+                int index = y * panel.width + x;
+                if (pixels[index].a > 0f) pixels[index] = fill;
+            }
+        }
+
+        Texture2D texture = new Texture2D(panel.width, panel.height, TextureFormat.RGBA32, false);
+        texture.name = name;
+        texture.filterMode = FilterMode.Point;
+        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.hideFlags = HideFlags.HideAndDontSave;
+        texture.SetPixels(pixels);
+        texture.Apply(false, true);
+        return texture;
+    }
+
     public static Texture2D SolidTexture(Color color, string name = "Cute Solid")
     {
         Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);

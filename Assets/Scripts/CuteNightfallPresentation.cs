@@ -61,6 +61,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private Texture2D authoredBackground;
     private Texture2D authoredSpriteSheet;
+    private Texture2D authoredUiAtlas;
+    private Texture2D slotPanelTexture;
+    private Texture2D cardPanelTexture;
+    private Texture2D cardMintTexture;
+    private Texture2D cardCoralTexture;
+    private Sprite actorShadowSprite;
+    private readonly Dictionary<GameObject, GameObject> actorShadowObjects = new Dictionary<GameObject, GameObject>();
 
     private Texture2D woodPanel;
     private Texture2D parchmentPanel;
@@ -80,6 +87,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private GUIStyle buttonStyle;
     private GUIStyle cardTitleStyle;
     private GUIStyle cardBodyStyle;
+    private GUIStyle parchmentPanelStyle;
+    private GUIStyle darkPanelStyle;
+    private GUIStyle timerPanelStyle;
+    private GUIStyle slotPanelStyle;
+    private GUIStyle cardNormalStyle;
+    private GUIStyle cardMintStyle;
+    private GUIStyle cardCoralStyle;
     private bool stylesBuilt;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -106,7 +120,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void TryAttach()
     {
-        MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>();
         foreach (MonoBehaviour behaviour in behaviours)
         {
             if (behaviour == null || behaviour == this) continue;
@@ -155,14 +169,47 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void BuildMaterials()
     {
+        authoredUiAtlas = Resources.Load<Texture2D>("NightfallMeadow/ui_atlas_512");
+        if (authoredUiAtlas != null) authoredUiAtlas.filterMode = FilterMode.Point;
+
         woodPanel = CutePixelKit.PanelTexture(
-            CutePixelKit.Hex("6F4938"), CutePixelKit.Hex("2D2130"), CutePixelKit.Hex("A87955"), 16, 3);
-        parchmentPanel = CutePixelKit.PanelTexture(
-            CutePixelKit.Hex("F6E8BD"), CutePixelKit.Hex("5D3E39"), CutePixelKit.Hex("FFF7D9"), 16, 3);
-        parchmentHover = CutePixelKit.PanelTexture(
-            CutePixelKit.Hex("FFF3CB"), CutePixelKit.Hex("9C5B4A"), Color.white, 16, 3);
+            CutePixelKit.Hex("6F4938"), CutePixelKit.Hex("21192B"), CutePixelKit.Hex("C58A58"), 16, 3);
+        Texture2D rawParchmentPanel = CutePixelKit.CropAtlasTexture(
+            authoredUiAtlas, "Authored Parchment Panel", 15, 35, 229, 65);
+        parchmentPanel = CutePixelKit.FlattenPanelInterior(
+            rawParchmentPanel,
+            "Clean Authored Parchment Panel",
+            10,
+            CutePixelKit.Hex("F6E8BD")) ?? CutePixelKit.PanelTexture(
+                CutePixelKit.Hex("F6E8BD"), CutePixelKit.Hex("5D3E39"), CutePixelKit.Hex("FFF7D9"), 16, 3);
+        parchmentHover = CutePixelKit.CropAtlasTexture(
+            authoredUiAtlas, "Authored Hover Panel", 134, 116, 106, 31) ?? CutePixelKit.PanelTexture(
+                CutePixelKit.Hex("FFF3CB"), CutePixelKit.Hex("9C5B4A"), Color.white, 16, 3);
         darkPanel = CutePixelKit.PanelTexture(
-            new Color(0.10f, 0.08f, 0.16f, 0.90f), CutePixelKit.Hex("3C2C4A"), CutePixelKit.Hex("67527A"), 16, 3);
+            new Color(0.055f, 0.045f, 0.105f, 0.94f), CutePixelKit.Hex("D9B36B"), CutePixelKit.Hex("2D3C46"), 16, 3);
+        slotPanelTexture = CutePixelKit.CropAtlasTexture(
+            authoredUiAtlas, "Authored Equipment Slot", 15, 178, 51, 49) ?? darkPanel;
+        Texture2D rawCardPanel = CutePixelKit.CropAtlasTexture(
+            authoredUiAtlas, "Authored Upgrade Card", 15, 260, 148, 148);
+        Texture2D rawCardMint = CutePixelKit.CropAtlasTexture(
+            authoredUiAtlas, "Authored Rare Upgrade Card", 177, 260, 148, 148);
+        Texture2D rawCardCoral = CutePixelKit.CropAtlasTexture(
+            authoredUiAtlas, "Authored Evolution Upgrade Card", 339, 260, 148, 148);
+        cardPanelTexture = CutePixelKit.FlattenPanelInterior(
+            rawCardPanel,
+            "Clean Authored Upgrade Card",
+            16,
+            CutePixelKit.Hex("F6E8BD")) ?? parchmentPanel;
+        cardMintTexture = CutePixelKit.FlattenPanelInterior(
+            rawCardMint,
+            "Clean Authored Rare Upgrade Card",
+            16,
+            CutePixelKit.Hex("E4F0D7")) ?? parchmentHover;
+        cardCoralTexture = CutePixelKit.FlattenPanelInterior(
+            rawCardCoral,
+            "Clean Authored Evolution Upgrade Card",
+            16,
+            CutePixelKit.Hex("F7D8D4")) ?? parchmentHover;
         barBack = CutePixelKit.SolidTexture(new Color(0.13f, 0.09f, 0.15f, 0.92f), "Bar Back");
         healthFill = CutePixelKit.SolidTexture(CutePixelKit.Coral, "Health Fill");
         xpFill = CutePixelKit.SolidTexture(CutePixelKit.Mint, "XP Fill");
@@ -172,6 +219,21 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void BuildSprites()
     {
+        actorShadowSprite = CutePixelKit.CreateSprite(
+            "Shared Grounding Shadow",
+            new[]
+            {
+                "...............",
+                "....SSSSSSS....",
+                ".SSSSSSSSSSSSS.",
+                "SSSSSSSSSSSSSSS",
+                ".SSSSSSSSSSSSS.",
+                "....SSSSSSS....",
+                "..............."
+            },
+            new Dictionary<char, Color> { { 'S', new Color(0.035f, 0.025f, 0.055f, 0.62f) } },
+            16f);
+
         authoredSpriteSheet = Resources.Load<Texture2D>("NightfallMeadow/sprite_sheet_256");
         if (authoredSpriteSheet != null)
         {
@@ -470,7 +532,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         moonGlowSprite = CreateRadialSprite(
             "Moon Volume Glow",
             new Color(0.46f, 0.66f, 1f, 0.28f),
-            128);
+            48);
         CutePixelKit.SpriteObject(
             farDepthLayer,
             "Moon Volume",
@@ -482,7 +544,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         lanternGlowSprite = CreateRadialSprite(
             "Courier Lantern Glow",
             new Color(1f, 0.65f, 0.30f, 0.30f),
-            128);
+            48);
         playerLanternGlow = CutePixelKit.SpriteObject(
             midDepthLayer,
             "Courier Lantern Bloom",
@@ -496,7 +558,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
         texture.name = name + " Texture";
-        texture.filterMode = FilterMode.Bilinear;
+        texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
         texture.hideFlags = HideFlags.HideAndDontSave;
 
@@ -508,7 +570,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             for (int x = 0; x < size; x++)
             {
                 float distance = Vector2.Distance(new Vector2(x, y), center) / radius;
-                float alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 2.2f) * color.a;
+                float stepped = Mathf.Pow(Mathf.Clamp01(1f - distance), 1.7f);
+                stepped = Mathf.Round(stepped * 6f) / 6f;
+                float alpha = stepped * color.a;
+                if (alpha > 0f && alpha < color.a * 0.5f && ((x + y) & 1) == 1) alpha *= 0.55f;
                 pixels[y * size + x] = new Color(color.r, color.g, color.b, alpha);
             }
         }
@@ -552,7 +617,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private void ApplySkinToWorld(bool hideLegacyField)
     {
         Sprite activeHeroSprite = GetHeroPresentationSprite();
-        SpriteRenderer[] renderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
+        SpriteRenderer[] renderers = FindObjectsByType<SpriteRenderer>();
         foreach (SpriteRenderer renderer in renderers)
         {
             if (renderer == null) continue;
@@ -600,6 +665,32 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         float depthScale = Mathf.Lerp(0.92f, 1.10f, depth);
         renderer.transform.localScale = baseScale * depthScale;
         renderer.sortingOrder = 32 + Mathf.RoundToInt(depth * 70f);
+
+        if (actorShadowSprite == null) return;
+        GameObject shadow = GetOrCreateActorShadow(actorObject, renderer.transform.parent);
+        if (shadow == null) return;
+
+        shadow.transform.position = renderer.transform.position + new Vector3(0f, -0.22f, 0f);
+        shadow.transform.localScale = new Vector3(1.18f * depthScale, 0.56f * depthScale, 1f);
+        SpriteRenderer shadowRenderer = shadow.GetComponent<SpriteRenderer>();
+        if (shadowRenderer != null) shadowRenderer.sortingOrder = renderer.sortingOrder - 1;
+    }
+
+    private GameObject GetOrCreateActorShadow(GameObject actorObject, Transform parent)
+    {
+        GameObject shadow;
+        if (actorShadowObjects.TryGetValue(actorObject, out shadow) && shadow != null) return shadow;
+
+        shadow = CutePixelKit.SpriteObject(
+            parent,
+            actorObject.name + " Ground Shadow",
+            actorShadowSprite,
+            actorObject.transform.position + new Vector3(0f, -0.22f, 0f),
+            1f,
+            0,
+            Color.white);
+        actorShadowObjects[actorObject] = shadow;
+        return shadow;
     }
 
     private Sprite GetHeroPresentationSprite()
@@ -647,18 +738,15 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         cardTitleStyle = MakeStyle(font, 18, CutePixelKit.Hex("4B3042"), FontStyle.Bold, TextAnchor.UpperLeft, true);
         cardBodyStyle = MakeStyle(font, 13, CutePixelKit.Hex("5E4647"), FontStyle.Normal, TextAnchor.UpperLeft, true);
 
-        buttonStyle = new GUIStyle
-        {
-            normal = { background = parchmentPanel, textColor = CutePixelKit.Hex("4B3042") },
-            hover = { background = parchmentHover, textColor = CutePixelKit.Hex("4B3042") },
-            active = { background = parchmentHover, textColor = CutePixelKit.Hex("4B3042") },
-            font = font,
-            fontSize = 13,
-            fontStyle = FontStyle.Bold,
-            alignment = TextAnchor.MiddleCenter,
-            border = new RectOffset(5, 5, 5, 5),
-            padding = new RectOffset(10, 10, 8, 8)
-        };
+        parchmentPanelStyle = MakePanelStyle(parchmentPanel, 10);
+        darkPanelStyle = MakePanelStyle(darkPanel, 8);
+        timerPanelStyle = MakePanelStyle(woodPanel, 8);
+        slotPanelStyle = MakePanelStyle(slotPanelTexture, 8);
+
+        cardNormalStyle = MakeCardStyle(font, cardPanelTexture, cardMintTexture, cardCoralTexture);
+        cardMintStyle = MakeCardStyle(font, cardMintTexture, cardPanelTexture, cardCoralTexture);
+        cardCoralStyle = MakeCardStyle(font, cardCoralTexture, cardMintTexture, cardPanelTexture);
+        buttonStyle = cardNormalStyle;
     }
 
     private static GUIStyle MakeStyle(Font font, int size, Color color, FontStyle style, TextAnchor anchor, bool wrap)
@@ -673,6 +761,41 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             wordWrap = wrap,
             richText = true
         };
+    }
+
+    private static GUIStyle MakePanelStyle(Texture2D background, int border)
+    {
+        return new GUIStyle
+        {
+            normal = { background = background },
+            border = new RectOffset(border, border, border, border),
+            padding = new RectOffset(0, 0, 0, 0),
+            stretchWidth = true,
+            stretchHeight = true
+        };
+    }
+
+    private static GUIStyle MakeCardStyle(Font font, Texture2D normal, Texture2D hover, Texture2D active)
+    {
+        return new GUIStyle
+        {
+            normal = { background = normal, textColor = CutePixelKit.Hex("4B3042") },
+            hover = { background = hover, textColor = CutePixelKit.Hex("4B3042") },
+            active = { background = active, textColor = CutePixelKit.Hex("4B3042") },
+            focused = { background = hover, textColor = CutePixelKit.Hex("4B3042") },
+            font = font,
+            fontSize = 13,
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleCenter,
+            border = new RectOffset(18, 18, 18, 18),
+            padding = new RectOffset(14, 14, 12, 12)
+        };
+    }
+
+    private static void DrawPanel(Rect rect, GUIStyle style)
+    {
+        if (style == null || style.normal.background == null) return;
+        GUI.Box(rect, GUIContent.none, style);
     }
 
     private void OnGUI()
@@ -698,7 +821,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         float toastTimer = GetFloat("toastTimer");
         if (toastTimer > 0f)
         {
-            GUI.DrawTexture(new Rect(300f, 488f, 360f, 42f), parchmentPanel, ScaleMode.StretchToFill);
+            DrawPanel(new Rect(300f, 488f, 360f, 42f), timerPanelStyle);
             GUI.Label(new Rect(316f, 496f, 328f, 26f), Humanize(GetString("toastMessage")), centeredStyle);
         }
 
@@ -717,17 +840,17 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         float elapsed = GetFloat("elapsed");
         float pulse = GetFloat("pulseEnergy");
 
-        GUI.DrawTexture(new Rect(18f, 16f, 252f, 72f), darkPanel, ScaleMode.StretchToFill);
+        DrawPanel(new Rect(18f, 16f, 252f, 72f), darkPanelStyle);
         DrawSprite(portraitSprite, new Rect(27f, 22f, 54f, 58f));
         GUI.Label(new Rect(88f, 22f, 170f, 22f), "Meadow Courier", headingStyle);
         DrawBar(new Rect(88f, 48f, 158f, 12f), health / maxHealth, healthFill);
         GUI.Label(new Rect(88f, 62f, 170f, 18f), Mathf.CeilToInt(health) + " / " + Mathf.CeilToInt(maxHealth) + " hearts", tinyStyle);
 
-        GUI.DrawTexture(new Rect(405f, 16f, 150f, 46f), woodPanel, ScaleMode.StretchToFill);
+        DrawPanel(new Rect(405f, 16f, 150f, 46f), timerPanelStyle);
         GUI.Label(new Rect(417f, 21f, 126f, 28f), CutePixelKit.FormatTime(elapsed), centeredStyle);
         GUI.Label(new Rect(417f, 43f, 126f, 14f), "until dawn", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleCenter, false));
 
-        GUI.DrawTexture(new Rect(708f, 16f, 234f, 46f), darkPanel, ScaleMode.StretchToFill);
+        DrawPanel(new Rect(708f, 16f, 234f, 46f), darkPanelStyle);
         GUI.Label(new Rect(720f, 22f, 210f, 18f), "Lv. " + level + "   •   " + kills + " little foes", tinyStyle);
         GUI.Label(new Rect(720f, 42f, 210f, 14f), chests + " story chests found", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleLeft, false));
 
@@ -760,7 +883,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void DrawSlot(Rect rect, Sprite icon, string badge)
     {
-        GUI.DrawTexture(rect, darkPanel, ScaleMode.StretchToFill);
+        DrawPanel(rect, slotPanelStyle);
         if (icon != null) DrawSprite(icon, new Rect(rect.x + 8f, rect.y + 7f, 32f, 32f));
         if (!string.IsNullOrEmpty(badge))
         {
@@ -771,7 +894,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private void DrawMenu()
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
-        GUI.DrawTexture(new Rect(190f, 112f, 580f, 350f), parchmentPanel, ScaleMode.StretchToFill);
+        DrawPanel(new Rect(190f, 112f, 580f, 350f), parchmentPanelStyle);
         GUI.Label(new Rect(235f, 142f, 490f, 54f), "Nightfall Meadow", titleStyle);
         GUI.Label(new Rect(250f, 201f, 460f, 56f), "A small lantern. A soft field.\nMany tiny things coming closer.", bodyStyle);
         GUI.Label(new Rect(270f, 276f, 420f, 56f), "Move with WASD or arrow keys.\nYour wand attacks by itself.", MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("5E4647"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
@@ -794,7 +917,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             string title = Humanize(ReadChoice(choice, "Title"));
             string description = Humanize(ReadChoice(choice, "Description"));
 
-            if (GUI.Button(card, GUIContent.none, buttonStyle)) InvokeUpgrade(i);
+            if (GUI.Button(card, GUIContent.none, StyleForChoice(tag))) InvokeUpgrade(i);
             GUI.Label(new Rect(card.x + 20f, card.y + 18f, card.width - 40f, 20f), (i + 1) + "   " + Humanize(tag), MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.Hex("A0614D"), FontStyle.Bold, TextAnchor.MiddleLeft, false));
             DrawSprite(IconForChoice(title, tag), new Rect(card.x + 91f, card.y + 50f, 68f, 68f));
             GUI.Label(new Rect(card.x + 20f, card.y + 132f, card.width - 40f, 60f), title, cardTitleStyle);
@@ -813,10 +936,18 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         return wandIcon;
     }
 
+    private GUIStyle StyleForChoice(string tag)
+    {
+        string key = (tag ?? string.Empty).ToLowerInvariant();
+        if (key.Contains("evolution") || key.Contains("rare")) return cardCoralStyle ?? buttonStyle;
+        if (key.Contains("passive") || key.Contains("blessing")) return cardMintStyle ?? buttonStyle;
+        return cardNormalStyle ?? buttonStyle;
+    }
+
     private void DrawStateCard(string title, string message, string prompt)
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
-        GUI.DrawTexture(new Rect(238f, 175f, 484f, 230f), parchmentPanel, ScaleMode.StretchToFill);
+        DrawPanel(new Rect(238f, 175f, 484f, 230f), parchmentPanelStyle);
         GUI.Label(new Rect(270f, 205f, 420f, 46f), title, MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Hex("4C3045"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
         GUI.Label(new Rect(285f, 267f, 390f, 54f), message, MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("5E4647"), FontStyle.Normal, TextAnchor.MiddleCenter, true));
         GUI.Label(new Rect(285f, 342f, 390f, 25f), prompt, MakeStyle(CutePixelKit.FriendlyFont, 13, CutePixelKit.Hex("7D5147"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
