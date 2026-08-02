@@ -27,6 +27,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Component simulation;
     private MethodInfo simulationUpdate;
     private MethodInfo applyUpgrade;
+    private MethodInfo selectClass;
     private readonly Dictionary<string, FieldInfo> fieldCache = new Dictionary<string, FieldInfo>();
     private bool attached;
     private bool reflectionFailed;
@@ -165,6 +166,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             simulation = behaviour;
             simulationUpdate = type.GetMethod("Update", InstancePrivate);
             applyUpgrade = type.GetMethod("ApplyUpgrade", InstancePrivate);
+            selectClass = type.GetMethod("SelectClass", InstancePrivate);
             behaviour.enabled = false;
             attached = simulationUpdate != null;
             ApplySkinToWorld(true);
@@ -176,6 +178,14 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         if (!attached)
         {
+            TryAttach();
+            return;
+        }
+
+        if (simulation == null || simulationUpdate == null)
+        {
+            attached = false;
+            reflectionFailed = false;
             TryAttach();
             return;
         }
@@ -2025,9 +2035,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void BuildStyles()
     {
-        if (stylesBuilt) return;
-        stylesBuilt = true;
         Font font = CutePixelKit.FriendlyFont;
+        if (stylesBuilt && titleStyle != null && titleStyle.font == font) return;
+        stylesBuilt = true;
 
         titleStyle = MakeStyle(font, 30, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, true);
         headingStyle = MakeStyle(font, 17, CutePixelKit.Hex("E8DCC2"), FontStyle.Bold, TextAnchor.MiddleLeft, false);
@@ -2050,7 +2060,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private static GUIStyle MakeStyle(Font font, int size, Color color, FontStyle style, TextAnchor anchor, bool wrap)
     {
-        return new GUIStyle
+        GUIStyle guiStyle = new GUIStyle
         {
             font = font,
             fontSize = size,
@@ -2060,6 +2070,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             wordWrap = wrap,
             richText = true
         };
+        return guiStyle;
     }
 
     private static GUIStyle MakePanelStyle(Texture2D background, int border)
@@ -2110,14 +2121,14 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         GUI.color = Color.white;
         GUI.matrix = Matrix4x4.TRS(new Vector3(offsetX, offsetY, 0f), Quaternion.identity, new Vector3(scale, scale, 1f));
 
-        DrawCompactHud();
-
         string mode = GetMode();
+        if (mode != "Menu" && mode != "ClassSelect") DrawCompactHud();
         if (mode == "Menu") DrawMenu();
+        else if (mode == "ClassSelect") DrawClassSelect();
         else if (mode == "LevelUp") DrawLevelUp();
-        else if (mode == "Paused") DrawStateCard("THE LANTERN RESTS", "The dead are waiting beyond the gate.", "PRESS P TO CONTINUE");
-        else if (mode == "Won") DrawStateCard("DAWN BREAKS", "You survived the Ashen Night.", "PRESS R TO HUNT AGAIN");
-        else if (mode == "Lost") DrawStateCard("THE LANTERN WENT DARK", "The abyss claimed this run.", "PRESS R TO RISE AGAIN");
+        else if (mode == "Paused") DrawStateCard("提燈暫歇", "亡者正在門外等候，你的冒險已暫停。", "按 P 繼續狩獵");
+        else if (mode == "Won") DrawStateCard("黎明降臨", "你撐過了灰燼之夜。", "按 R 再次出發");
+        else if (mode == "Lost") DrawStateCard("提燈熄滅", "深淵吞噬了這次遠征。", "按 R 重新站起");
 
         float toastTimer = GetFloat("toastTimer");
         if (toastTimer > 0f)
@@ -2141,20 +2152,25 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         int chests = GetInt("chestsOpened");
         float elapsed = GetFloat("elapsed");
         float pulse = GetFloat("pulseEnergy");
+        float skillTimer = GetFloat("classSkillTimer");
+        string className = GetString("activeClassDisplayName");
+        string classRole = GetString("activeClassRole");
+        string skillName = GetString("activeClassSkillName");
 
-        DrawPanel(new Rect(18f, 16f, 252f, 72f), darkPanelStyle);
-        DrawSprite(portraitSprite, new Rect(27f, 22f, 54f, 58f));
-        GUI.Label(new Rect(88f, 22f, 170f, 22f), "LANTERN EXILE", headingStyle);
-        DrawBar(new Rect(88f, 48f, 158f, 12f), health / maxHealth, healthFill);
-        GUI.Label(new Rect(88f, 62f, 170f, 18f), Mathf.CeilToInt(health) + " / " + Mathf.CeilToInt(maxHealth) + " life", tinyStyle);
+        DrawPanel(new Rect(18f, 16f, 272f, 88f), darkPanelStyle);
+        DrawSprite(portraitSprite, new Rect(27f, 25f, 54f, 58f));
+        GUI.Label(new Rect(88f, 20f, 190f, 20f), className, headingStyle);
+        GUI.Label(new Rect(88f, 39f, 190f, 15f), classRole + " · Q「" + skillName + "」" + (skillTimer > 0.05f ? " 冷卻" : " 就緒"), MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Hex("C89245"), FontStyle.Bold, TextAnchor.MiddleLeft, false));
+        DrawBar(new Rect(88f, 57f, 158f, 10f), health / maxHealth, healthFill);
+        GUI.Label(new Rect(88f, 70f, 190f, 18f), Mathf.CeilToInt(health) + " / " + Mathf.CeilToInt(maxHealth) + " 生命", tinyStyle);
 
         DrawPanel(new Rect(405f, 16f, 150f, 46f), timerPanelStyle);
         GUI.Label(new Rect(417f, 21f, 126f, 28f), CutePixelKit.FormatTime(elapsed), centeredStyle);
-        GUI.Label(new Rect(417f, 43f, 126f, 14f), "to dawn", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(417f, 43f, 126f, 14f), "距離黎明", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleCenter, false));
 
         DrawPanel(new Rect(708f, 16f, 234f, 46f), darkPanelStyle);
-        GUI.Label(new Rect(720f, 22f, 210f, 18f), "Lv. " + level + "   •   " + kills + " demons slain", tinyStyle);
-        GUI.Label(new Rect(720f, 42f, 210f, 14f), chests + " relic chests opened", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleLeft, false));
+        GUI.Label(new Rect(720f, 22f, 210f, 18f), "等級 " + level + "   ·   擊殺 " + kills, tinyStyle);
+        GUI.Label(new Rect(720f, 42f, 210f, 14f), "遺物寶箱 " + chests + " 個", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleLeft, false));
 
         if (GetBool("bossActive"))
         {
@@ -2167,14 +2183,15 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         else if (GetFloat("bossWarningTimer") > 0f)
         {
             DrawPanel(new Rect(302f, 68f, 356f, 32f), timerPanelStyle);
-            GUI.Label(new Rect(314f, 73f, 332f, 20f), "A LARGE SHADOW IS LISTENING", MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.MascotPink, FontStyle.Bold, TextAnchor.MiddleCenter, false));
+            GUI.Label(new Rect(314f, 73f, 332f, 20f), "巨大陰影正在甦醒", MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.MascotPink, FontStyle.Bold, TextAnchor.MiddleCenter, false));
         }
 
         DrawLoadout();
 
         DrawBar(new Rect(18f, 516f, 924f, 9f), xp / (float)xpToNext, xpFill);
-        GUI.Label(new Rect(18f, 492f, 300f, 20f), "SOUL SHARDS  " + xp + " / " + xpToNext, tinyStyle);
-        GUI.Label(new Rect(720f, 492f, 222f, 20f), "Pulse  " + Mathf.RoundToInt(pulse) + "%", MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleRight, false));
+        GUI.Label(new Rect(18f, 492f, 300f, 20f), "靈魂碎片  " + xp + " / " + xpToNext, tinyStyle);
+        GUI.Label(new Rect(330f, 492f, 360f, 20f), skillTimer > 0.05f ? "Q 技能冷卻 " + skillTimer.ToString("0.0") + " 秒" : "Q 技能已就緒", MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.Gold, FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(720f, 492f, 222f, 20f), "脈衝  " + Mathf.RoundToInt(pulse) + "%", MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleRight, false));
         DrawBar(new Rect(822f, 483f, 120f, 7f), pulse / 100f, pulseFill);
     }
 
@@ -2186,10 +2203,22 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         bool berry = GetBool("hasBerryBasket");
         bool needle = GetBool("hasSewingNeedle");
         bool firefly = GetBool("hasFireflyJar");
+        bool meteor = GetBool("hasMeteor");
+        bool bloodRelic = GetBool("hasBloodRelic");
+        bool crown = GetInt("ashenCrownLevel") > 0;
+        bool sanguineOrbit = GetBool("sanguineOrbit");
+        bool graveStorm = GetBool("graveStorm");
         int wandLevel = GetInt("wandLevel");
         float magnet = GetFloat("magnetRange");
         float move = GetFloat("moveSpeed");
         int maxHealth = GetInt("maxHealth");
+
+        GUI.Label(new Rect(321f, 442f, 190f, 18f), "裝備與組合", MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.Hex("C89245"), FontStyle.Bold, TextAnchor.MiddleLeft, false));
+        string combination = "尚未完成組合";
+        if (evolved) combination = "地獄齊射";
+        if (sanguineOrbit) combination += combination == "尚未完成組合" ? "猩紅星環" : " · 猩紅星環";
+        if (graveStorm) combination += combination == "尚未完成組合" ? "墓園風暴" : " · 墓園風暴";
+        GUI.Label(new Rect(512f, 442f, 430f, 18f), "組合：" + combination, MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleRight, false));
 
         float x = 321f;
         const float y = 465f;
@@ -2198,7 +2227,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         DrawSlot(new Rect(x + 108f, y, 48f, 48f), berry ? berryIcon : magnet > 1.5f ? magnetIcon : null, berry ? "" : magnet > 1.5f ? "+" : "");
         DrawSlot(new Rect(x + 162f, y, 48f, 48f), needle ? needleIcon : maxHealth > 180 ? heartIcon : null, needle ? "" : maxHealth > 180 ? "+" : "");
         DrawSlot(new Rect(x + 216f, y, 48f, 48f), firefly ? fireflyIcon : move > 4.2f ? bootIcon : null, firefly ? "" : move > 4.2f ? "+" : "");
-        DrawSlot(new Rect(x + 270f, y, 48f, 48f), pulseIcon != null ? pulseIcon : orbitSprite, "");
+        DrawSlot(new Rect(x + 270f, y, 48f, 48f), meteor || bloodRelic || crown ? pulseIcon : pulseIcon != null ? pulseIcon : orbitSprite, meteor ? "隕" : bloodRelic ? "血" : crown ? "冠" : "");
     }
 
     private void DrawSlot(Rect rect, Sprite icon, string badge)
@@ -2215,18 +2244,54 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
         DrawPanel(new Rect(190f, 112f, 580f, 350f), parchmentPanelStyle);
-        GUI.Label(new Rect(235f, 142f, 490f, 54f), "ASHEN NIGHTFALL", titleStyle);
-        GUI.Label(new Rect(250f, 201f, 460f, 56f), "The black lantern burns.\nSomething ancient is waking.", bodyStyle);
-        GUI.Label(new Rect(270f, 276f, 420f, 56f), "WASD / ARROWS  MOVE THE EXILE.\nYour weapon fires automatically.", MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("D1C4A7"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
-        GUI.Label(new Rect(270f, 344f, 420f, 25f), "SPACE  RELEASE THE ABYSSAL PULSE", MakeStyle(CutePixelKit.FriendlyFont, 12, CutePixelKit.Hex("B67A68"), FontStyle.Normal, TextAnchor.MiddleCenter, false));
-        GUI.Label(new Rect(270f, 389f, 420f, 32f), "PRESS ENTER TO ENTER THE ASHEN GATE", MakeStyle(CutePixelKit.FriendlyFont, 15, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(235f, 142f, 490f, 54f), "灰燼夜行", titleStyle);
+        GUI.Label(new Rect(250f, 201f, 460f, 56f), "黑色提燈再次燃起。\n古老的東西正在甦醒。", bodyStyle);
+        GUI.Label(new Rect(270f, 276f, 420f, 56f), "WASD／方向鍵　移動\n武器會自動攻擊，SPACE 釋放脈衝，Q 使用職業技能", MakeStyle(CutePixelKit.FriendlyFont, 13, CutePixelKit.Hex("D1C4A7"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
+        GUI.Label(new Rect(270f, 350f, 420f, 25f), "按 ENTER 進入職業選擇", MakeStyle(CutePixelKit.FriendlyFont, 13, CutePixelKit.Hex("B67A68"), FontStyle.Normal, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(270f, 393f, 420f, 28f), "在灰燼之門前，打造你的遺物流派", MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+    }
+
+    private void DrawClassSelect()
+    {
+        GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
+        DrawPanel(new Rect(34f, 24f, 892f, 488f), parchmentPanelStyle);
+        GUI.Label(new Rect(180f, 42f, 600f, 42f), "選擇你的職業", MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(180f, 82f, 600f, 22f), "四種起始流派，各自擁有專屬技能、初始裝備與成長方向", centeredStyle);
+
+        string[] names = { "燈魂流亡者", "血誓騎士", "詛咒術士", "墓影獵手" };
+        string[] roles = { "均衡型", "近戰範圍型", "法術控場型", "高速遠程型" };
+        string[] descriptions =
+        {
+            "攻守均衡，使用提燈脈衝穩定清場。",
+            "生命與護甲更高，火環會從開局陪你戰鬥。",
+            "開局擁有咒音合唱，擅長用環形法術控場。",
+            "移動與穿透優秀，開局便能使用骨針穿刺。"
+        };
+        string[] skills = { "技能：深淵脈衝", "技能：血誓新星", "技能：群星詛咒", "技能：墓影連射" };
+        Sprite[] icons = { wandIcon, ringIcon, notesIcon, needleIcon };
+        int selected = Mathf.Clamp(GetInt("selectedClassIndex"), 0, 3);
+
+        for (int i = 0; i < 4; i++)
+        {
+            Rect card = new Rect(52f + i * 218f, 120f, 204f, 302f);
+            GUIStyle cardStyle = i == selected ? cardCoralStyle : cardNormalStyle;
+            if (GUI.Button(card, GUIContent.none, cardStyle)) InvokeSelectClass(i);
+            GUI.Label(new Rect(card.x + 16f, card.y + 14f, 172f, 18f), (i + 1) + "　" + roles[i], MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.Hex("C89245"), FontStyle.Bold, TextAnchor.MiddleLeft, false));
+            DrawSprite(icons[i], new Rect(card.x + 68f, card.y + 43f, 68f, 68f));
+            GUI.Label(new Rect(card.x + 14f, card.y + 118f, 176f, 32f), names[i], MakeStyle(CutePixelKit.FriendlyFont, 16, CutePixelKit.Hex("E8DCC2"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
+            GUI.Label(new Rect(card.x + 18f, card.y + 160f, 168f, 60f), descriptions[i], cardBodyStyle);
+            GUI.Label(new Rect(card.x + 18f, card.y + 224f, 168f, 34f), skills[i], MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.UpperLeft, true));
+            GUI.Label(new Rect(card.x + 18f, card.y + 270f, 168f, 20f), i == selected ? "目前選擇" : "按一下選擇", MakeStyle(CutePixelKit.FriendlyFont, 10, i == selected ? CutePixelKit.MascotPink : CutePixelKit.Hex("8D8177"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        }
+
+        GUI.Label(new Rect(110f, 446f, 740f, 24f), "← →／A D 選擇　·　1–4 快速選職業　·　ENTER 開始遠征　·　ESC 返回", MakeStyle(CutePixelKit.FriendlyFont, 12, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
     }
 
     private void DrawLevelUp()
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
-        GUI.Label(new Rect(180f, 74f, 600f, 46f), "CHOOSE A RELIC", MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
-        GUI.Label(new Rect(220f, 113f, 520f, 24f), "THE DEAD WILL WAIT. CHOOSE YOUR POWER.", centeredStyle);
+        GUI.Label(new Rect(180f, 74f, 600f, 46f), "選擇一件遺物", MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(220f, 113f, 520f, 24f), "夜色暫停，現在打造你的流派。", centeredStyle);
 
         IList choices = GetList("upgradeChoices");
         for (int i = 0; i < 3; i++)
@@ -2242,24 +2307,24 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             DrawSprite(IconForChoice(title, tag), new Rect(card.x + 91f, card.y + 50f, 68f, 68f));
             GUI.Label(new Rect(card.x + 20f, card.y + 132f, card.width - 40f, 60f), title, cardTitleStyle);
             GUI.Label(new Rect(card.x + 20f, card.y + 202f, card.width - 40f, 74f), description, cardBodyStyle);
-            GUI.Label(new Rect(card.x + 20f, card.y + 278f, card.width - 40f, 20f), "TAKE RELIC " + (i + 1), MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+            GUI.Label(new Rect(card.x + 20f, card.y + 278f, card.width - 40f, 20f), "取得遺物 " + (i + 1), MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
         }
     }
 
     private Sprite IconForChoice(string title, string tag)
     {
         string key = (title + " " + tag).ToLowerInvariant();
-        if (key.Contains("choir") || key.Contains("notes")) return notesIcon;
-        if (key.Contains("sigil")) return wandIcon;
-        if (key.Contains("vial") || key.Contains("blood")) return berryIcon;
-        if (key.Contains("needle") || key.Contains("bone")) return needleIcon;
-        if (key.Contains("lantern") || key.Contains("soul")) return fireflyIcon;
-        if (key.Contains("armor") || key.Contains("recovery") || key.Contains("plating") || key.Contains("sanguine")) return heartIcon;
-        if (key.Contains("luck") || key.Contains("draw")) return magnetIcon;
-        if (key.Contains("reach") || key.Contains("area")) return pulseIcon;
-        if (key.Contains("ring") || key.Contains("infernal")) return ringIcon;
+        if (key.Contains("choir") || key.Contains("notes") || key.Contains("咒音") || key.Contains("合唱")) return notesIcon;
+        if (key.Contains("sigil") || key.Contains("法典") || key.Contains("符文") || key.Contains("血印")) return wandIcon;
+        if (key.Contains("vial") || key.Contains("blood") || key.Contains("血瓶") || key.Contains("猩紅")) return berryIcon;
+        if (key.Contains("needle") || key.Contains("bone") || key.Contains("骨針") || key.Contains("墓園")) return needleIcon;
+        if (key.Contains("lantern") || key.Contains("soul") || key.Contains("靈魂") || key.Contains("提燈")) return fireflyIcon;
+        if (key.Contains("armor") || key.Contains("recovery") || key.Contains("plating") || key.Contains("sanguine") || key.Contains("鎧甲") || key.Contains("王冠") || key.Contains("誓言")) return heartIcon;
+        if (key.Contains("luck") || key.Contains("draw") || key.Contains("磁石") || key.Contains("幸運")) return magnetIcon;
+        if (key.Contains("reach") || key.Contains("area") || key.Contains("範圍") || key.Contains("領域") || key.Contains("脈衝") || key.Contains("隕星")) return pulseIcon;
+        if (key.Contains("ring") || key.Contains("infernal") || key.Contains("火環") || key.Contains("煉獄")) return ringIcon;
         if (key.Contains("gravity") || key.Contains("magnet")) return magnetIcon;
-        if (key.Contains("wind") || key.Contains("vital") || key.Contains("wraith")) return heartIcon;
+        if (key.Contains("wind") || key.Contains("vital") || key.Contains("wraith") || key.Contains("幽影")) return bootIcon;
         if (key.Contains("step") || key.Contains("haste")) return bootIcon;
         return wandIcon;
     }
@@ -2267,8 +2332,8 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private GUIStyle StyleForChoice(string tag)
     {
         string key = (tag ?? string.Empty).ToLowerInvariant();
-        if (key.Contains("evolution") || key.Contains("rare")) return cardCoralStyle ?? buttonStyle;
-        if (key.Contains("passive") || key.Contains("blessing")) return cardMintStyle ?? buttonStyle;
+        if (key.Contains("evolution") || key.Contains("rare") || key.Contains("進化") || key.Contains("組合")) return cardCoralStyle ?? buttonStyle;
+        if (key.Contains("passive") || key.Contains("blessing") || key.Contains("被動") || key.Contains("裝備")) return cardMintStyle ?? buttonStyle;
         return cardNormalStyle ?? buttonStyle;
     }
 
@@ -2302,6 +2367,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         if (applyUpgrade == null) return;
         try { applyUpgrade.Invoke(simulation, new object[] { index }); }
+        catch (TargetInvocationException exception) { Debug.LogException(exception.InnerException ?? exception); }
+    }
+
+    private void InvokeSelectClass(int index)
+    {
+        if (selectClass == null) return;
+        try { selectClass.Invoke(simulation, new object[] { index }); }
         catch (TargetInvocationException exception) { Debug.LogException(exception.InnerException ?? exception); }
     }
 
@@ -2368,9 +2440,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         if (string.IsNullOrEmpty(text)) return string.Empty;
         string value = text.Replace("//", " · ").Replace("_", " ").Trim();
-        value = value.Replace("INSTALLED", "attuned").Replace("CHEST OPENED", "Relic chest opened");
-        value = value.Replace("WEAPON", "relic").Replace("PASSIVE", "dark boon").Replace("EVOLUTION", "forbidden evolution");
-        value = value.ToLowerInvariant();
-        return char.ToUpperInvariant(value[0]) + value.Substring(1);
+        value = value.Replace("INSTALLED", "已裝備").Replace("CHEST OPENED", "遺物寶箱已開啟");
+        value = value.Replace("WEAPON", "武器").Replace("PASSIVE", "被動").Replace("EVOLUTION", "組合進化");
+        value = value.Replace("EQUIPMENT", "裝備").Replace("AREA", "範圍");
+        return value;
     }
 }

@@ -6,6 +6,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     private enum GameMode
     {
         Menu,
+        ClassSelect,
         Playing,
         LevelUp,
         Paused,
@@ -52,7 +53,13 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         Armor,
         Recovery,
         Luck,
-        Area
+        Area,
+        Meteor,
+        BloodRelic,
+        AshenCrown,
+        AreaMastery,
+        SanguineOrbit,
+        GraveStorm
     }
 
     private sealed class Enemy
@@ -138,6 +145,37 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         }
     }
 
+    private static readonly string[] ClassDisplayNames =
+    {
+        "燈魂流亡者", "血誓騎士", "詛咒術士", "墓影獵手"
+    };
+
+    private static readonly string[] ClassRoles =
+    {
+        "均衡型", "近戰範圍型", "法術控場型", "高速遠程型"
+    };
+
+    private static readonly string[] ClassDescriptions =
+    {
+        "以古老提燈引導亡魂。攻守均衡，適合第一次深入灰燼之夜。",
+        "以血誓換取力量。生命、護甲與範圍能力更高，近身清場最強。",
+        "將詛咒寫進每一枚符文。擁有環形法術與更快的自動攻擊。",
+        "在墓影之間穿梭。移速、穿透與拾取能力優秀，擅長拉扯敵群。"
+    };
+
+    private static readonly string[] ClassSkillNames =
+    {
+        "深淵脈衝", "血誓新星", "群星詛咒", "墓影連射"
+    };
+
+    private static readonly string[] ClassSkillDescriptions =
+    {
+        "Q：釋放大範圍震盪，擊退並重創附近敵人。",
+        "Q：以自身為中心爆發猩紅新星，造成高額範圍傷害並吸血。",
+        "Q：向八方射出詛咒種子，命中後穿透並留下混亂火花。",
+        "Q：鎖定最近目標，瞬間射出一輪高穿透骨針。"
+    };
+
     private static readonly Color Ink = new Color(0.012f, 0.010f, 0.018f, 1f);
     private static readonly Color Arena = new Color(0.060f, 0.050f, 0.070f, 1f);
     private static readonly Color Grid = new Color(0.24f, 0.13f, 0.15f, 0.30f);
@@ -177,6 +215,16 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     };
 
     private GameMode mode = GameMode.Menu;
+    private int selectedClassIndex;
+    private int activeClassIndex;
+    private string selectedClassDisplayName = "燈魂流亡者";
+    private string selectedClassRole = "均衡型";
+    private string selectedClassDescription = "以古老提燈引導亡魂。攻守均衡，適合第一次深入灰燼之夜。";
+    private string selectedClassSkillName = "深淵脈衝";
+    private string selectedClassSkillDescription = "Q：釋放大範圍震盪，擊退並重創附近敵人。";
+    private string activeClassDisplayName = "燈魂流亡者";
+    private string activeClassRole = "均衡型";
+    private string activeClassSkillName = "深淵脈衝";
     private Camera mainCamera;
     private GameObject player;
     private GameObject playerShadow;
@@ -259,6 +307,9 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     private float pulseCooldown;
     private float pulseTimer;
     private float pulseRadius;
+    private float classSkillTimer;
+    private float classSkillCooldown;
+    private int classSkillLevel;
     private float toastTimer;
     private string toastMessage = string.Empty;
     private float emberDamage;
@@ -281,6 +332,17 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     private float sewingNeedleTimer;
     private float fireflyTimer;
     private GameObject[] fireflyObjects;
+    private bool hasMeteor;
+    private int meteorLevel;
+    private float meteorTimer;
+    private bool hasBloodRelic;
+    private int bloodRelicLevel;
+    private float bloodRelicTimer;
+    private int ashenCrownLevel;
+    private bool sanguineOrbit;
+    private bool graveStorm;
+    private float sanguineOrbitTimer;
+    private float graveStormTimer;
     private bool bossActive;
     private bool bossSpawned;
     private float bossHealth;
@@ -531,6 +593,8 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     private void ResetRun()
     {
         mode = GameMode.Menu;
+        SetSelectedClass(selectedClassIndex);
+        SetActiveClass(activeClassIndex);
         elapsed = 0f;
         timeLeft = TargetLevelTime;
         level = 1;
@@ -589,6 +653,20 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         pulseTimer = 0f;
         toastTimer = 0f;
         toastMessage = string.Empty;
+        classSkillTimer = 0.65f;
+        classSkillCooldown = 9.5f;
+        classSkillLevel = 1;
+        hasMeteor = false;
+        meteorLevel = 0;
+        meteorTimer = 4.2f;
+        hasBloodRelic = false;
+        bloodRelicLevel = 0;
+        bloodRelicTimer = 5.2f;
+        ashenCrownLevel = 0;
+        sanguineOrbit = false;
+        graveStorm = false;
+        sanguineOrbitTimer = 2.8f;
+        graveStormTimer = 3.2f;
         upgradeChoices.Clear();
 
         player.transform.position = new Vector3(spawnPoint.x, spawnPoint.y, 0f);
@@ -603,6 +681,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         ClearChests();
         ClearRingObjects();
         ClearFireflyObjects();
+        ApplyClassLoadout();
         SpawnEnemy(new Vector2(-2.8f, 2.8f));
         SpawnEnemy(new Vector2(5.3f, 1.0f));
         SpawnEnemy(new Vector2(3.2f, -2.9f));
@@ -616,12 +695,107 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         mode = GameMode.Playing;
     }
 
+    private void SetSelectedClass(int index)
+    {
+        selectedClassIndex = Mathf.Clamp(index, 0, ClassDisplayNames.Length - 1);
+        selectedClassDisplayName = ClassDisplayNames[selectedClassIndex];
+        selectedClassRole = ClassRoles[selectedClassIndex];
+        selectedClassDescription = ClassDescriptions[selectedClassIndex];
+        selectedClassSkillName = ClassSkillNames[selectedClassIndex];
+        selectedClassSkillDescription = ClassSkillDescriptions[selectedClassIndex];
+    }
+
+    private void SetActiveClass(int index)
+    {
+        activeClassIndex = Mathf.Clamp(index, 0, ClassDisplayNames.Length - 1);
+        activeClassDisplayName = ClassDisplayNames[activeClassIndex];
+        activeClassRole = ClassRoles[activeClassIndex];
+        activeClassSkillName = ClassSkillNames[activeClassIndex];
+    }
+
+    private void SelectClass(int index)
+    {
+        if (mode != GameMode.ClassSelect) return;
+        SetSelectedClass(index);
+    }
+
+    private void OpenClassSelect()
+    {
+        SetSelectedClass(activeClassIndex);
+        mode = GameMode.ClassSelect;
+    }
+
+    private void ConfirmClassSelection()
+    {
+        activeClassIndex = selectedClassIndex;
+        SetActiveClass(activeClassIndex);
+        StartRun();
+    }
+
+    private void ApplyClassLoadout()
+    {
+        switch (activeClassIndex)
+        {
+            case 1:
+                maxHealth = 230;
+                playerHealth = maxHealth;
+                weaponDamage = 16f;
+                moveSpeed = 3.75f;
+                areaMultiplier = 1.20f;
+                armorLevel = 1;
+                hasEmberRing = true;
+                emberDamage = 14f;
+                BuildRingObjects();
+                break;
+            case 2:
+                maxHealth = 165;
+                playerHealth = maxHealth;
+                weaponDamage = 13f;
+                weaponCooldown = 0.62f;
+                projectileCount = 2;
+                areaMultiplier = 1.10f;
+                hasHearthNotes = true;
+                hearthNotesLevel = 1;
+                break;
+            case 3:
+                maxHealth = 170;
+                playerHealth = maxHealth;
+                moveSpeed = 5.05f;
+                projectileCount = 2;
+                projectilePierce = 2;
+                magnetRange = 1.55f;
+                hasSewingNeedle = true;
+                sewingNeedleLevel = 1;
+                weaponCooldown = 0.66f;
+                break;
+        }
+    }
+
     private void Update()
     {
         if (mode == GameMode.Menu)
         {
             AnimateDecorativeState();
-            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space)) StartRun();
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space)) OpenClassSelect();
+            return;
+        }
+
+        if (mode == GameMode.ClassSelect)
+        {
+            if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                SetSelectedClass((selectedClassIndex + 1) % ClassDisplayNames.Length);
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                SetSelectedClass((selectedClassIndex + ClassDisplayNames.Length - 1) % ClassDisplayNames.Length);
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1)) SetSelectedClass(0);
+            else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2)) SetSelectedClass(1);
+            else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3)) SetSelectedClass(2);
+            else if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4)) SetSelectedClass(3);
+            else if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace)) mode = GameMode.Menu;
+            else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space)) ConfirmClassSelection();
             return;
         }
 
@@ -658,6 +832,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         timeLeft = Mathf.Max(0f, TargetLevelTime - elapsed);
         pulseEnergy = Mathf.Min(100f, pulseEnergy + dt * 7.5f);
         pulseCooldown = Mathf.Max(0f, pulseCooldown - dt);
+        classSkillTimer = Mathf.Max(0f, classSkillTimer - dt);
         contactCooldown = Mathf.Max(0f, contactCooldown - dt);
         toastTimer = Mathf.Max(0f, toastTimer - dt);
         bossWarningTimer = Mathf.Max(0f, bossWarningTimer - dt);
@@ -667,12 +842,14 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         UpdateSpawnPressure(dt);
         MoveEnemies(dt);
         FireWeapon(dt);
+        CastClassSkillIfRequested();
         UpdateProjectiles(dt);
         UpdateEnemyProjectiles(dt);
         UpdateGems(dt);
         UpdateChests(dt);
         UpdateEmberRing(dt);
         UpdateFireflyJar(dt);
+        UpdateAreaRelics(dt);
         UpdatePulse(dt);
         UpdateEffects(dt);
         SyncBossTelemetry();
@@ -862,7 +1039,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     {
         bossSpawned = true;
         bossActive = true;
-        bossDisplayName = "ASHEN WARDEN";
+        bossDisplayName = "灰燼守門者";
         bossMaxHealth = 520f + elapsed * 2.2f;
         bossHealth = bossMaxHealth;
         bossWarningTimer = 4.2f;
@@ -891,7 +1068,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         boss.Shadow = CreateShadow("Ashen Warden Ground Shadow", position + new Vector2(0.08f, -0.20f), 1.42f, 8);
         enemies.Add(boss);
         SpawnEffect("Boss Burst", position, bossBurstSprite, 2.2f, new Color(0.82f, 0.24f, 0.16f, 0.94f), 0.75f);
-        toastMessage = "ASHEN WARDEN APPROACHES  //  THE ASH GATE OPENS";
+        toastMessage = "灰燼守門者降臨 · 灰燼之門已開啟";
         toastTimer = 4.2f;
     }
 
@@ -1198,6 +1375,130 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         }
     }
 
+    private void CastClassSkillIfRequested()
+    {
+        if (!Input.GetKeyDown(KeyCode.Q) || classSkillTimer > 0f) return;
+
+        float cooldown = activeClassIndex == 1 ? 11.5f : activeClassIndex == 2 ? 8.5f : activeClassIndex == 3 ? 7.5f : 9.5f;
+        classSkillCooldown = Mathf.Max(4.8f, cooldown - Mathf.Min(2.4f, level * 0.08f));
+        classSkillTimer = classSkillCooldown;
+        pulseTimer = 0.52f;
+        pulseRadius = 0.35f;
+
+        switch (activeClassIndex)
+        {
+            case 1:
+                int healedHits = PerformAreaDamage("血誓新星", player.transform.position, 3.55f * areaMultiplier, 54f + level * 2.4f, new Color(0.92f, 0.18f, 0.18f, 0.92f));
+                playerHealth = Mathf.Min(maxHealth, playerHealth + healedHits * 3.5f);
+                break;
+            case 2:
+                SpawnEffect("群星詛咒", player.transform.position, bossBurstSprite, 0.86f * areaMultiplier, new Color(0.62f, 0.20f, 0.80f, 0.90f), 0.62f);
+                for (int i = 0; i < 8; i++)
+                {
+                    float angle = i / 8f * Mathf.PI * 2f + elapsed * 0.35f;
+                    Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                    SpawnPlayerProjectile(ProjectileKind.CurseSeed, "詛咒種子", curseSeedSprite, direction, 6.8f, 26f + level * 2f, 2.4f, projectilePierce + 1, 0.36f, false);
+                }
+                break;
+            case 3:
+                Enemy nearest = FindNearestEnemy();
+                Vector2 aim = nearest == null ? lastAim : ((Vector2)nearest.Object.transform.position - (Vector2)player.transform.position).normalized;
+                if (aim.sqrMagnitude < 0.001f) aim = lastAim;
+                int arrows = 6 + Mathf.Min(3, classSkillLevel);
+                for (int i = 0; i < arrows; i++)
+                {
+                    float offset = arrows == 1 ? 0f : Mathf.Lerp(-24f, 24f, i / (float)(arrows - 1));
+                    Vector2 direction = Quaternion.Euler(0f, 0f, offset) * aim;
+                    SpawnPlayerProjectile(ProjectileKind.Needle, "墓影骨針", needleSprite, direction, 12.5f, 36f + level * 2.5f, 1.8f, 5 + projectilePierce, 0.30f, false);
+                }
+                SpawnEffect("墓影連射", (Vector2)player.transform.position + aim * 0.55f, hitEffectSprite, 0.72f, new Color(0.78f, 0.84f, 0.70f, 0.95f), 0.42f);
+                break;
+            default:
+                PerformAreaDamage("深淵脈衝", player.transform.position, 3.10f * areaMultiplier, 32f + level * 2f, new Color(0.72f, 0.78f, 0.70f, 0.88f));
+                break;
+        }
+    }
+
+    private int PerformAreaDamage(string effectName, Vector2 center, float radius, float damage, Color color)
+    {
+        SpawnEffect(effectName, center, bossBurstSprite, Mathf.Max(0.72f, radius * 0.27f), color, 0.62f);
+        defeatedBuffer.Clear();
+        int hitCount = 0;
+        foreach (Enemy enemy in enemies)
+        {
+            if (enemy.Health <= 0f || enemy.Object == null) continue;
+            if (Vector2.Distance(center, enemy.Object.transform.position) > radius + enemy.Radius * 0.34f) continue;
+            enemy.Health -= damage;
+            hitCount++;
+            SpawnEffect("範圍命中", enemy.Object.transform.position, hitEffectSprite, enemy.Kind == EnemyKind.Boss ? 0.52f : 0.27f, color, 0.26f);
+            if (enemy.Health <= 0f && !defeatedBuffer.Contains(enemy)) defeatedBuffer.Add(enemy);
+        }
+        foreach (Enemy defeated in defeatedBuffer) if (enemies.Contains(defeated)) DefeatEnemy(defeated);
+        return hitCount;
+    }
+
+    private void UpdateAreaRelics(float dt)
+    {
+        if (hasMeteor)
+        {
+            meteorTimer -= dt;
+            if (meteorTimer <= 0f)
+            {
+                Enemy target = FindNearestEnemy();
+                Vector2 targetPosition = target == null
+                    ? (Vector2)player.transform.position + Random.insideUnitCircle * 2.2f
+                    : (Vector2)target.Object.transform.position;
+                float radius = (1.45f + meteorLevel * 0.24f) * areaMultiplier;
+                SpawnEffect("地獄隕星", targetPosition, bossBurstSprite, radius * 0.34f, new Color(0.96f, 0.35f, 0.10f, 0.95f), 0.75f);
+                PerformAreaDamage("隕星爆裂", targetPosition, radius, 34f + meteorLevel * 15f + level * 1.5f, new Color(0.96f, 0.35f, 0.10f, 0.92f));
+                meteorTimer = Mathf.Max(2.3f, 6.4f - meteorLevel * 0.48f);
+            }
+        }
+
+        if (hasBloodRelic)
+        {
+            bloodRelicTimer -= dt;
+            if (bloodRelicTimer <= 0f)
+            {
+                int hits = PerformAreaDamage("猩紅遺物", player.transform.position, (1.85f + bloodRelicLevel * 0.22f) * areaMultiplier, 18f + bloodRelicLevel * 11f + level, new Color(0.76f, 0.14f, 0.22f, 0.90f));
+                playerHealth = Mathf.Min(maxHealth, playerHealth + hits * (1.8f + bloodRelicLevel * 0.8f));
+                bloodRelicTimer = Mathf.Max(2.8f, 6.2f - bloodRelicLevel * 0.42f);
+            }
+        }
+
+        if (sanguineOrbit)
+        {
+            sanguineOrbitTimer -= dt;
+            if (sanguineOrbitTimer <= 0f)
+            {
+                int count = 6 + Mathf.Min(2, berryBasketLevel);
+                for (int i = 0; i < count; i++)
+                {
+                    float angle = i / (float)count * Mathf.PI * 2f + elapsed;
+                    SpawnPlayerProjectile(ProjectileKind.Berry, "猩紅星環", berryBoltSprite, new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), 5.4f, 28f + berryBasketLevel * 8f, 2.3f, 1, 0.34f, true);
+                }
+                SpawnEffect("猩紅星環", player.transform.position, bossBurstSprite, 0.72f * areaMultiplier, new Color(0.88f, 0.20f, 0.30f, 0.84f), 0.48f);
+                sanguineOrbitTimer = Mathf.Max(2.8f, 5.6f - berryBasketLevel * 0.3f);
+            }
+        }
+
+        if (graveStorm)
+        {
+            graveStormTimer -= dt;
+            if (graveStormTimer <= 0f)
+            {
+                int count = 7 + Mathf.Min(2, sewingNeedleLevel);
+                for (int i = 0; i < count; i++)
+                {
+                    float angle = i / (float)count * Mathf.PI * 2f - elapsed * 0.6f;
+                    SpawnPlayerProjectile(ProjectileKind.Needle, "墓園風暴", needleSprite, new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), 9.2f, 24f + sewingNeedleLevel * 10f, 1.9f, 3 + sewingNeedleLevel, 0.25f, false);
+                }
+                SpawnEffect("墓園風暴", player.transform.position, bossBurstSprite, 0.70f * areaMultiplier, new Color(0.72f, 0.78f, 0.70f, 0.84f), 0.52f);
+                graveStormTimer = Mathf.Max(2.9f, 5.9f - sewingNeedleLevel * 0.32f);
+            }
+        }
+    }
+
     private void SpawnPlayerProjectile(ProjectileKind kind, string objectName, Sprite sprite, Vector2 direction, float speed, float damage, float life, int pierce, float scale, bool homing)
     {
         if (direction.sqrMagnitude < 0.001f) direction = lastAim;
@@ -1369,7 +1670,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                 SpawnGem(drop, 5);
             }
             SpawnChest(position);
-            toastMessage = "ASHEN WARDEN FELLED  //  RELIC SURGE +1500";
+            toastMessage = "灰燼守門者已殞落 · 遺物能量 +1500";
             toastTimer = 4.0f;
             return;
         }
@@ -1440,50 +1741,64 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         upgradeChoices.Clear();
         List<UpgradeChoice> pool = new List<UpgradeChoice>
         {
-            new UpgradeChoice(UpgradeType.WandDamage, "WEAPON", "BLOOD SIGIL", "+4 Blood Sigil damage. Weapon level rises."),
-            new UpgradeChoice(UpgradeType.WandCount, "WEAPON", "SPLIT RUNE", "+1 automatic bolt per volley."),
-            new UpgradeChoice(UpgradeType.WandCooldown, "WEAPON", "RITUAL HASTE", "Attack cooldown reduced by 10%."),
-            new UpgradeChoice(UpgradeType.Magnet, "PASSIVE", "SOUL DRAW", "+0.8 pickup radius for fallen souls."),
-            new UpgradeChoice(UpgradeType.Vitality, "PASSIVE", "BONE PLATING", "+25 max health and restore 25 health."),
-            new UpgradeChoice(UpgradeType.Haste, "PASSIVE", "WRAITH STEP", "+0.55 movement speed."),
-            new UpgradeChoice(UpgradeType.Armor, "PASSIVE", "IRON VOW", "Reduce contact and projectile damage by 12%."),
-            new UpgradeChoice(UpgradeType.Recovery, "PASSIVE", "SANGUINE RITE", "Regenerate 1.4 life every second."),
-            new UpgradeChoice(UpgradeType.Luck, "PASSIVE", "GRAVE LUCK", "Elite demons are more likely to drop relic chests."),
-            new UpgradeChoice(UpgradeType.Area, "PASSIVE", "RITUAL REACH", "Pulse and orbiting weapon radius +18%.")
+            new UpgradeChoice(UpgradeType.WandDamage, "武器", "血印法典", "武器傷害 +4，血印法典提升一級。"),
+            new UpgradeChoice(UpgradeType.WandCount, "武器", "裂魂符文", "每次自動攻擊額外射出 1 枚法術彈。"),
+            new UpgradeChoice(UpgradeType.WandCooldown, "武器", "儀式急速", "自動攻擊冷卻時間縮短 10%。"),
+            new UpgradeChoice(UpgradeType.Magnet, "被動", "魂引磁石", "拾取靈魂碎片的範圍 +0.8。"),
+            new UpgradeChoice(UpgradeType.Vitality, "被動", "骨骸鎧甲", "最大生命 +25，並立即恢復 25 點生命。"),
+            new UpgradeChoice(UpgradeType.Haste, "被動", "幽影步", "移動速度 +0.55，轉向更俐落。"),
+            new UpgradeChoice(UpgradeType.Armor, "被動", "鋼鐵誓言", "受到接觸與投射物傷害降低 12%。"),
+            new UpgradeChoice(UpgradeType.Recovery, "被動", "猩紅儀式", "每秒恢復 1.4 點生命。"),
+            new UpgradeChoice(UpgradeType.Luck, "被動", "墓園幸運", "精英敵人更容易掉落遺物寶箱。"),
+            new UpgradeChoice(UpgradeType.Area, "範圍", "儀式延伸", "脈衝與環繞武器範圍 +18%。"),
+            new UpgradeChoice(UpgradeType.AreaMastery, "範圍", "領域支配", "所有範圍傷害半徑 +16%，範圍技能更容易連鎖清場。"),
+            new UpgradeChoice(UpgradeType.Meteor, "範圍", hasMeteor ? "地獄隕星 +" + (meteorLevel + 1) : "地獄隕星", hasMeteor ? "隕星更頻繁，爆炸範圍與傷害提升。" : "週期性召喚隕星，轟擊敵群並造成範圍傷害。"),
+            new UpgradeChoice(UpgradeType.BloodRelic, "裝備", hasBloodRelic ? "猩紅遺物 +" + (bloodRelicLevel + 1) : "猩紅遺物", hasBloodRelic ? "遺物爆發更頻繁，命中敵人時回復更多生命。" : "裝備一件會週期爆發的血色遺物，攻擊附近敵人並吸血。"),
+            new UpgradeChoice(UpgradeType.AshenCrown, "裝備", "灰燼王冠 +" + (ashenCrownLevel + 1), "最大生命、護甲與自然恢復小幅提升。")
         };
 
         pool.Add(new UpgradeChoice(
             UpgradeType.HearthNotes,
-            "WEAPON",
-            hasHearthNotes ? "HEXED CHOIR +" + (hearthNotesLevel + 1) : "HEXED CHOIR",
-            hasHearthNotes ? "The cursed choir fires faster and gains another projectile." : "Every few seconds, send a radial ring of cursed notes."));
+            "武器",
+            hasHearthNotes ? "咒音合唱 +" + (hearthNotesLevel + 1) : "咒音合唱",
+            hasHearthNotes ? "詛咒音符射得更快，並增加環形投射物。" : "每隔數秒向四周發射一圈詛咒音符。"));
         pool.Add(new UpgradeChoice(
             UpgradeType.BerryBasket,
-            "WEAPON",
-            hasBerryBasket ? "BLOOD VIAL +" + (berryBasketLevel + 1) : "BLOOD VIAL",
-            hasBerryBasket ? "Homing blood damage and cadence improve." : "Launch a homing blood orb at the nearest demon."));
+            "武器",
+            hasBerryBasket ? "血瓶投擲 +" + (berryBasketLevel + 1) : "血瓶投擲",
+            hasBerryBasket ? "追蹤血球傷害與投擲頻率提升。" : "向最近的敵人投出會追蹤的血球。"));
         pool.Add(new UpgradeChoice(
             UpgradeType.SewingNeedle,
-            "WEAPON",
-            hasSewingNeedle ? "BONE NEEDLE +" + (sewingNeedleLevel + 1) : "BONE NEEDLE",
-            hasSewingNeedle ? "The bone shard gains damage and pierce." : "Fire a fast piercing bone shard through the swarm."));
+            "武器",
+            hasSewingNeedle ? "骨針穿刺 +" + (sewingNeedleLevel + 1) : "骨針穿刺",
+            hasSewingNeedle ? "骨針傷害與穿透數提升。" : "射出高速骨針，貫穿一整列敵人。"));
         pool.Add(new UpgradeChoice(
             UpgradeType.FireflyJar,
-            "WEAPON",
-            hasFireflyJar ? "SOUL LANTERN +" + (fireflyJarLevel + 1) : "SOUL LANTERN",
-            hasFireflyJar ? "Add another orbiting soul and increase its damage." : "Summon orbiting souls that burn nearby demons."));
+            "武器",
+            hasFireflyJar ? "靈魂提燈 +" + (fireflyJarLevel + 1) : "靈魂提燈",
+            hasFireflyJar ? "增加一枚環繞靈魂並提升灼燒傷害。" : "召喚環繞靈魂，持續灼燒靠近的敵人。"));
 
         if (!hasEmberRing)
         {
-            UpgradeChoice ring = new UpgradeChoice(UpgradeType.EmberRing, "PASSIVE", "INFERNAL RING", "Two orbiting embers sear demons nearby.");
+            UpgradeChoice ring = new UpgradeChoice(UpgradeType.EmberRing, "範圍", "煉獄火環", "兩枚環繞火焰會持續灼燒附近敵人。你也可以用它組合地獄齊射。");
             upgradeChoices.Add(ring);
             pool.RemoveAll(choice => choice.Type == UpgradeType.EmberRing);
         }
 
         if (hasEmberRing && wandLevel >= 3 && !cinderVolley)
         {
-            UpgradeChoice evolution = new UpgradeChoice(UpgradeType.CinderVolley, "EVOLUTION", "HELLFIRE VOLLEY", "Blood Sigil + Infernal Ring evolve into a piercing spread.");
+            UpgradeChoice evolution = new UpgradeChoice(UpgradeType.CinderVolley, "組合進化", "地獄齊射", "血印法典 + 煉獄火環進化為高穿透的扇形火焰齊射。");
             upgradeChoices.Add(evolution);
+        }
+
+        if (hasBerryBasket && hasFireflyJar && !sanguineOrbit)
+        {
+            upgradeChoices.Add(new UpgradeChoice(UpgradeType.SanguineOrbit, "組合進化", "猩紅星環", "血瓶投擲 + 靈魂提燈組合。週期性向八方射出追蹤血球。"));
+        }
+
+        if (hasHearthNotes && hasSewingNeedle && !graveStorm)
+        {
+            upgradeChoices.Add(new UpgradeChoice(UpgradeType.GraveStorm, "組合進化", "墓園風暴", "咒音合唱 + 骨針穿刺組合。週期性召喚穿透骨針風暴。"));
         }
 
         while (upgradeChoices.Count < 3 && pool.Count > 0)
@@ -1495,7 +1810,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
         while (upgradeChoices.Count < 3)
         {
-            upgradeChoices.Add(new UpgradeChoice(UpgradeType.WandDamage, "WEAPON", "BLOOD SIGIL", "+4 Blood Sigil damage."));
+            upgradeChoices.Add(new UpgradeChoice(UpgradeType.WandDamage, "武器", "血印法典", "武器傷害 +4。"));
         }
     }
 
@@ -1569,9 +1884,44 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             case UpgradeType.Area:
                 areaMultiplier += 0.18f;
                 break;
+            case UpgradeType.Meteor:
+                hasMeteor = true;
+                meteorLevel++;
+                areaMultiplier += 0.04f;
+                meteorTimer = Mathf.Min(meteorTimer, 1.1f);
+                break;
+            case UpgradeType.BloodRelic:
+                hasBloodRelic = true;
+                bloodRelicLevel++;
+                weaponDamage += 2f;
+                bloodRelicTimer = Mathf.Min(bloodRelicTimer, 1.4f);
+                break;
+            case UpgradeType.AshenCrown:
+                ashenCrownLevel++;
+                maxHealth += 18;
+                playerHealth = Mathf.Min(maxHealth, playerHealth + 18f);
+                armorLevel++;
+                recoveryRate += 0.35f;
+                break;
+            case UpgradeType.AreaMastery:
+                areaMultiplier += 0.16f;
+                weaponDamage += 2f;
+                break;
+            case UpgradeType.SanguineOrbit:
+                sanguineOrbit = true;
+                berryBasketLevel++;
+                areaMultiplier += 0.12f;
+                sanguineOrbitTimer = 0.4f;
+                break;
+            case UpgradeType.GraveStorm:
+                graveStorm = true;
+                sewingNeedleLevel++;
+                areaMultiplier += 0.12f;
+                graveStormTimer = 0.4f;
+                break;
         }
 
-        toastMessage = choice.Title + " INSTALLED";
+        toastMessage = choice.Title + " 已裝備";
         toastTimer = 2.4f;
         upgradeChoices.Clear();
         mode = GameMode.Playing;
@@ -1675,7 +2025,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                 chestsOpened++;
                 score += 250;
                 AddXp(7);
-                toastMessage = "CHEST OPENED  +250 SCORE  +7 XP";
+                toastMessage = "遺物寶箱已開啟 · 分數 +250 · 經驗 +7";
                 toastTimer = 3.2f;
                 chest.Object.transform.localScale = Vector3.one * 0.58f;
                 chest.Object.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0.42f);
@@ -1955,31 +2305,31 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         if (hudPanelTexture != null) GUI.DrawTexture(new Rect(18f, 10f, 924f, 154f), hudPanelTexture);
         if (hudLineTexture != null) GUI.DrawTexture(new Rect(18f, 160f, 924f, 2f), hudLineTexture);
 
-        DrawUiLabel(new Rect(30f, 18f, 470f, 32f), "PIXEL SIGNAL // NIGHTFALL", Cyan, 22, true);
-        DrawUiLabel(new Rect(30f, 48f, 470f, 22f), "RELAY FIELD  /  SURVIVE THE SWARM", Muted, 11, false);
-        DrawUiLabel(new Rect(720f, 20f, 210f, 28f), string.Format("TIME  {0:00}:{1:00}", Mathf.FloorToInt(elapsed / 60f), Mathf.FloorToInt(elapsed % 60f)), White, 16, true, TextAnchor.MiddleRight);
+        DrawUiLabel(new Rect(30f, 18f, 470f, 32f), "灰燼夜行 · 像素信號", Cyan, 22, true);
+        DrawUiLabel(new Rect(30f, 48f, 470f, 22f), "灰燼中繼站 · 在獸群裡活下來", Muted, 11, false);
+        DrawUiLabel(new Rect(720f, 20f, 210f, 28f), string.Format("時間  {0:00}:{1:00}", Mathf.FloorToInt(elapsed / 60f), Mathf.FloorToInt(elapsed % 60f)), White, 16, true, TextAnchor.MiddleRight);
 
-        DrawUiLabel(new Rect(30f, 78f, 260f, 22f), string.Format("LEVEL {0:00}   KILLS {1:000}   CHESTS {2}", level, kills, chestsOpened), White, 14, true);
+        DrawUiLabel(new Rect(30f, 78f, 260f, 22f), string.Format("等級 {0:00}   擊殺 {1:000}   寶箱 {2}", level, kills, chestsOpened), White, 14, true);
         DrawUiBox(new Rect(30f, 103f, 410f, 12f), new Color(0.02f, 0.08f, 0.10f, 0.92f));
         DrawUiBox(new Rect(30f, 103f, 410f * Mathf.Clamp01(xp / (float)Mathf.Max(1, xpToNext)), 12f), Cyan);
-        DrawUiLabel(new Rect(30f, 118f, 410f, 20f), string.Format("XP {0}/{1}", xp, xpToNext), Muted, 11);
+        DrawUiLabel(new Rect(30f, 118f, 410f, 20f), string.Format("經驗 {0}/{1}", xp, xpToNext), Muted, 11);
         DrawUiBox(new Rect(30f, 142f, 220f, 10f), new Color(0.02f, 0.08f, 0.10f, 0.92f));
         DrawUiBox(new Rect(30f, 142f, 220f * Mathf.Clamp01(playerHealth / Mathf.Max(1f, maxHealth)), 10f), Magenta);
-        DrawUiLabel(new Rect(260f, 136f, 200f, 24f), string.Format("LIFE {0:000}/{1:000}", Mathf.CeilToInt(playerHealth), maxHealth), Muted, 11);
+        DrawUiLabel(new Rect(260f, 136f, 200f, 24f), string.Format("生命 {0:000}/{1:000}", Mathf.CeilToInt(playerHealth), maxHealth), Muted, 11);
 
-        string loadout = cinderVolley ? "CINDER VOLLEY // EVOLVED" : string.Format("SPARK WAND LV.{0}", wandLevel);
-        if (hasEmberRing) loadout += "  + EMBER RING";
+        string loadout = cinderVolley ? "地獄齊射 · 組合進化" : string.Format("血印法典 等級 {0}", wandLevel);
+        if (hasEmberRing) loadout += "  + 煉獄火環";
         DrawUiLabel(new Rect(500f, 78f, 420f, 24f), loadout, White, 14, true);
-        DrawUiLabel(new Rect(500f, 108f, 420f, 24f), string.Format("DAMAGE {0:00}   BOLTS {1}   PULSE {2:000}%", Mathf.RoundToInt(weaponDamage), projectileCount, Mathf.RoundToInt(pulseEnergy)), Muted, 11);
-        DrawUiLabel(new Rect(500f, 136f, 420f, 24f), string.Format("SCORE {0:00000}   MAGNET {1:0.0}", score, magnetRange), Muted, 11);
-        DrawUiLabel(new Rect(30f, 560f, 900f, 24f), "WASD / ARROWS MOVE     SPACE PULSE     P PAUSE     F FULLSCREEN", Muted, 11, false, TextAnchor.MiddleCenter);
+        DrawUiLabel(new Rect(500f, 108f, 420f, 24f), string.Format("傷害 {0:00}   彈數 {1}   脈衝 {2:000}%", Mathf.RoundToInt(weaponDamage), projectileCount, Mathf.RoundToInt(pulseEnergy)), Muted, 11);
+        DrawUiLabel(new Rect(500f, 136f, 420f, 24f), string.Format("分數 {0:00000}   吸魂範圍 {1:0.0}", score, magnetRange), Muted, 11);
+        DrawUiLabel(new Rect(30f, 560f, 900f, 24f), "WASD／方向鍵 移動　SPACE 脈衝　Q 職業技能　P 暫停　F 全螢幕", Muted, 11, false, TextAnchor.MiddleCenter);
 
         if (toastTimer > 0f) DrawUiLabel(new Rect(210f, 520f, 540f, 28f), toastMessage, Gold, 15, true, TextAnchor.MiddleCenter);
         if (mode == GameMode.LevelUp) DrawLevelUpOverlay();
-        else if (mode == GameMode.Menu) DrawStateOverlay("PIXEL SIGNAL", "COLLECT SHARDS, BUILD A LOADOUT, SURVIVE THE NIGHT.", "PRESS ENTER TO DEPLOY");
-        else if (mode == GameMode.Paused) DrawStateOverlay("PAUSED", "THE SWARM IS FROZEN. YOUR RUN IS SAFE.", "PRESS P TO RESUME");
-        else if (mode == GameMode.Won) DrawStateOverlay("NIGHT SURVIVED", string.Format("180 SECONDS CLEARED.\nFINAL SCORE {0:00000}  //  KILLS {1:000}.", score, kills), "PRESS R TO RUN IT AGAIN");
-        else if (mode == GameMode.Lost) DrawStateOverlay("RUN ENDED", string.Format("SURVIVED {0:00}:{1:00}.\nLEVEL {2:00}  //  KILLS {3:000}.", Mathf.FloorToInt(elapsed / 60f), Mathf.FloorToInt(elapsed % 60f), level, kills), "PRESS R TO REDEPLOY");
+        else if (mode == GameMode.Menu) DrawStateOverlay("灰燼夜行", "收集靈魂碎片，打造遺物流派，在獸群中活下來。", "按 ENTER 進入職業選擇");
+        else if (mode == GameMode.Paused) DrawStateOverlay("已暫停", "獸群已凍結，你的遠征受到保護。", "按 P 繼續");
+        else if (mode == GameMode.Won) DrawStateOverlay("撐過黑夜", string.Format("已完成 180 秒。\n最終分數 {0:00000} · 擊殺 {1:000}。", score, kills), "按 R 再來一局");
+        else if (mode == GameMode.Lost) DrawStateOverlay("遠征結束", string.Format("存活 {0:00}:{1:00}。\n等級 {2:00} · 擊殺 {3:000}。", Mathf.FloorToInt(elapsed / 60f), Mathf.FloorToInt(elapsed % 60f), level, kills), "按 R 重新出發");
 
         GUI.matrix = previousMatrix;
     }
@@ -1991,14 +2341,14 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         DrawUiLabel(new Rect(205f, 204f, 550f, 46f), heading, Cyan, 24, true, TextAnchor.MiddleCenter);
         DrawUiLabel(new Rect(205f, 270f, 550f, 60f), body, White, 15, false, TextAnchor.MiddleCenter);
         DrawUiLabel(new Rect(205f, 360f, 550f, 28f), prompt, White, 14, true, TextAnchor.MiddleCenter);
-        DrawUiLabel(new Rect(205f, 398f, 550f, 22f), "AUTO-ATTACK  //  SHARDS  //  UPGRADES  //  EVOLUTION", Muted, 10, false, TextAnchor.MiddleCenter);
+        DrawUiLabel(new Rect(205f, 398f, 550f, 22f), "自動攻擊 · 靈魂碎片 · 升級 · 組合進化", Muted, 10, false, TextAnchor.MiddleCenter);
     }
 
     private void DrawLevelUpOverlay()
     {
         DrawUiBox(new Rect(75f, 118f, 810f, 410f), new Color(0.012f, 0.035f, 0.055f, 0.96f));
-        DrawUiLabel(new Rect(115f, 145f, 730f, 40f), "LEVEL UP // CHOOSE ONE", Cyan, 24, true, TextAnchor.MiddleCenter);
-        DrawUiLabel(new Rect(115f, 185f, 730f, 24f), "THE NIGHT PAUSES WHILE YOU BUILD YOUR LOADOUT", Muted, 11, false, TextAnchor.MiddleCenter);
+        DrawUiLabel(new Rect(115f, 145f, 730f, 40f), "升級 · 選擇一項", Cyan, 24, true, TextAnchor.MiddleCenter);
+        DrawUiLabel(new Rect(115f, 185f, 730f, 24f), "夜色暫停，打造你的裝備組合", Muted, 11, false, TextAnchor.MiddleCenter);
 
         for (int i = 0; i < 3; i++)
         {
@@ -2009,7 +2359,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             DrawUiLabel(new Rect(card.x + 16f, card.y + 55f, card.width - 32f, 54f), choice.Title, White, 16, true);
             DrawUiLabel(new Rect(card.x + 16f, card.y + 120f, card.width - 32f, 86f), choice.Description, Muted, 12);
         }
-        DrawUiLabel(new Rect(115f, 482f, 730f, 24f), "CLICK A CARD OR PRESS 1 / 2 / 3", White, 14, true, TextAnchor.MiddleCenter);
+        DrawUiLabel(new Rect(115f, 482f, 730f, 24f), "點擊卡片，或按 1／2／3 選擇", White, 14, true, TextAnchor.MiddleCenter);
     }
 
     private void DrawUiLabel(Rect rect, string text, Color color, int fontSize = 14, bool bold = false, TextAnchor anchor = TextAnchor.MiddleLeft)

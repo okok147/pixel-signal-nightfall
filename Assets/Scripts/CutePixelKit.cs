@@ -41,6 +41,12 @@ public static class CutePixelKit
     private static Sprite whiteSprite;
     private static Font friendlyFont;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetRuntimeFonts()
+    {
+        friendlyFont = null;
+    }
+
     public static Color Hex(string hex)
     {
         Color value;
@@ -70,9 +76,7 @@ public static class CutePixelKit
         {
             if (friendlyFont != null) return friendlyFont;
 
-            friendlyFont = Font.CreateDynamicFontFromOSFont(
-                new[] { "Chalkboard SE", "Arial Rounded MT Bold", "Trebuchet MS", "Arial" },
-                18);
+            friendlyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             return friendlyFont;
         }
     }
