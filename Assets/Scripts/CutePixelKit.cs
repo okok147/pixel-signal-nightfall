@@ -8,35 +8,35 @@ using UnityEngine;
 /// </summary>
 public static class CutePixelKit
 {
-    public static readonly Color Night = Hex("17152B");
-    public static readonly Color NightSoft = Hex("24203D");
-    public static readonly Color Plum = Hex("4A315F");
-    public static readonly Color Ink = Hex("21192B");
-    public static readonly Color Cream = Hex("FFF2C9");
-    public static readonly Color Paper = Hex("F7E8C5");
-    public static readonly Color Mint = Hex("8EE3C2");
-    public static readonly Color MintDark = Hex("3B9E86");
-    public static readonly Color Sky = Hex("8EC5FF");
-    public static readonly Color Lavender = Hex("BFA7FF");
-    public static readonly Color Peach = Hex("FFB98B");
-    public static readonly Color Coral = Hex("FF758F");
-    public static readonly Color Berry = Hex("A4496B");
-    public static readonly Color Gold = Hex("FFD56A");
-    public static readonly Color Leaf = Hex("63B36F");
-    public static readonly Color LeafDark = Hex("2E6F55");
-    public static readonly Color White = Hex("FFFDF6");
-    public static readonly Color Shadow = new Color(0.05f, 0.035f, 0.09f, 0.52f);
+    public static readonly Color Night = Hex("090A10");
+    public static readonly Color NightSoft = Hex("141722");
+    public static readonly Color Plum = Hex("302238");
+    public static readonly Color Ink = Hex("11131A");
+    public static readonly Color Cream = Hex("D9C9A8");
+    public static readonly Color Paper = Hex("C9B78F");
+    public static readonly Color Mint = Hex("718F89");
+    public static readonly Color MintDark = Hex("3F5B59");
+    public static readonly Color Sky = Hex("6A7598");
+    public static readonly Color Lavender = Hex("716284");
+    public static readonly Color Peach = Hex("B77B57");
+    public static readonly Color Coral = Hex("9E3345");
+    public static readonly Color Berry = Hex("69263B");
+    public static readonly Color Gold = Hex("C89245");
+    public static readonly Color Leaf = Hex("5E624B");
+    public static readonly Color LeafDark = Hex("2C3632");
+    public static readonly Color White = Hex("F2E9D0");
+    public static readonly Color Shadow = new Color(0.012f, 0.010f, 0.018f, 0.72f);
 
-    // Original tiny-mascot palette: milk, berry, blush and mint accents keep
-    // characters gentle while the dark plum outline preserves gameplay clarity.
-    public static readonly Color MascotOutline = Hex("4B3042");
-    public static readonly Color MascotCream = Hex("FFF1D4");
-    public static readonly Color MascotPink = Hex("F4A7B9");
-    public static readonly Color MascotBlush = Hex("F29A9A");
-    public static readonly Color MascotMint = Hex("9ADCC6");
-    public static readonly Color MascotLilac = Hex("C8B5EF");
-    public static readonly Color MascotBrown = Hex("A86D62");
-    public static readonly Color MascotGold = Hex("FFD576");
+    // Original gothic flat palette: obsidian, ash, blood and tarnished gold
+    // keep every generated character, enemy, effect and panel in one world.
+    public static readonly Color MascotOutline = Hex("120F16");
+    public static readonly Color MascotCream = Hex("D9C9A8");
+    public static readonly Color MascotPink = Hex("8C3345");
+    public static readonly Color MascotBlush = Hex("B6534B");
+    public static readonly Color MascotMint = Hex("718B84");
+    public static readonly Color MascotLilac = Hex("695877");
+    public static readonly Color MascotBrown = Hex("4C352C");
+    public static readonly Color MascotGold = Hex("C89245");
 
     private static Sprite whiteSprite;
     private static Font friendlyFont;

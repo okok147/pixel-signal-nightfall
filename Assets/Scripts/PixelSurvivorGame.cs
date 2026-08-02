@@ -138,18 +138,18 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         }
     }
 
-    private static readonly Color Ink = new Color(0.02f, 0.04f, 0.07f, 1f);
-    private static readonly Color Arena = new Color(0.035f, 0.09f, 0.13f, 1f);
-    private static readonly Color Grid = new Color(0.11f, 0.28f, 0.31f, 0.34f);
-    private static readonly Color Cyan = new Color(0.22f, 0.94f, 0.88f, 1f);
-    private static readonly Color CyanDim = new Color(0.10f, 0.48f, 0.55f, 1f);
-    private static readonly Color Gold = new Color(1f, 0.72f, 0.25f, 1f);
-    private static readonly Color Magenta = new Color(1f, 0.24f, 0.48f, 1f);
-    private static readonly Color Flame = new Color(1f, 0.38f, 0.16f, 1f);
-    private static readonly Color White = new Color(0.91f, 0.98f, 0.95f, 1f);
-    private static readonly Color Muted = new Color(0.50f, 0.68f, 0.71f, 1f);
-    private static readonly Color CardBlue = new Color(0.035f, 0.15f, 0.20f, 0.98f);
-    private static readonly Color CardHover = new Color(0.07f, 0.28f, 0.32f, 1f);
+    private static readonly Color Ink = new Color(0.012f, 0.010f, 0.018f, 1f);
+    private static readonly Color Arena = new Color(0.060f, 0.050f, 0.070f, 1f);
+    private static readonly Color Grid = new Color(0.24f, 0.13f, 0.15f, 0.30f);
+    private static readonly Color Cyan = new Color(0.72f, 0.78f, 0.70f, 1f);
+    private static readonly Color CyanDim = new Color(0.32f, 0.38f, 0.38f, 1f);
+    private static readonly Color Gold = new Color(0.78f, 0.49f, 0.19f, 1f);
+    private static readonly Color Magenta = new Color(0.70f, 0.12f, 0.20f, 1f);
+    private static readonly Color Flame = new Color(0.91f, 0.30f, 0.10f, 1f);
+    private static readonly Color White = new Color(0.91f, 0.86f, 0.73f, 1f);
+    private static readonly Color Muted = new Color(0.46f, 0.42f, 0.42f, 1f);
+    private static readonly Color CardBlue = new Color(0.08f, 0.065f, 0.09f, 0.98f);
+    private static readonly Color CardHover = new Color(0.22f, 0.11f, 0.12f, 1f);
 
     private const int TargetLevelTime = 180;
     private const int TargetSignals = 6;
@@ -304,7 +304,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         BuildSprites();
         BuildArena();
         BuildActors();
-        hudPanelTexture = CreateTexture(new Color(0.008f, 0.035f, 0.055f, 0.78f));
+        hudPanelTexture = CreateTexture(new Color(0.012f, 0.010f, 0.018f, 0.90f));
         hudLineTexture = CreateTexture(new Color(Cyan.r, Cyan.g, Cyan.b, 0.46f));
         ResetRun();
     }
@@ -335,7 +335,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             new[] { ".......", ".SSSSS.", "SSSSSSS", ".SSSSS.", "......." },
             new Dictionary<char, Color> { { 'S', new Color(0.01f, 0.02f, 0.03f, 0.72f) } }, 16f);
         playerSprite = CreatePixelSprite(
-            "Night Courier",
+            "Lantern Exile",
             new[]
             {
                 ".....C......", "....CCC.....", "...CCWCC....", "..CCWWWWCC..",
@@ -345,7 +345,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             new Dictionary<char, Color> { { 'C', Cyan }, { 'W', White } }, 16f);
 
         droneSprite = CreatePixelSprite(
-            "Red Drone",
+            "Blood Wisp",
             new[]
             {
                 ".....M.....", "...MMMMM...", "..MMRRRMM..", ".MMRRRRRMM.",
@@ -355,7 +355,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             new Dictionary<char, Color> { { 'M', Magenta }, { 'R', Flame } }, 16f);
 
         bruteSprite = CreatePixelSprite(
-            "Brute Drone",
+            "Horned Revenant",
             new[]
             {
                 "....G..G....", "...GGGGGG...", "..GGBBBBGG..", ".GGBBBBBBGG.",
@@ -447,7 +447,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         for (float x = -7f; x <= 7f; x += 1f) decoration.Add(CreateRect("Grid Vertical", new Vector2(x, 0f), new Vector2(0.018f, 8.2f), Grid, -20));
         for (float y = -3.5f; y <= 3.5f; y += 1f) decoration.Add(CreateRect("Grid Horizontal", new Vector2(0f, y), new Vector2(14.7f, 0.018f), Grid, -20));
 
-        Color border = new Color(0.20f, 0.72f, 0.74f, 0.82f);
+        Color border = new Color(0.58f, 0.22f, 0.18f, 0.82f);
         decoration.Add(CreateRect("Border Top", new Vector2(0f, ArenaTop), new Vector2(15f, 0.06f), border, -10));
         decoration.Add(CreateRect("Border Bottom", new Vector2(0f, ArenaBottom), new Vector2(15f, 0.06f), border, -10));
         decoration.Add(CreateRect("Border Left", new Vector2(ArenaLeft, 0f), new Vector2(0.06f, 8.15f), border, -10));
@@ -464,8 +464,8 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
     private void BuildActors()
     {
-        player = CreateSpriteObject("Night Courier", playerSprite, spawnPoint, 0.95f, 10);
-        playerShadow = CreateShadow("Courier Ground Shadow", spawnPoint + new Vector2(0.08f, -0.16f), 0.95f, 8);
+        player = CreateSpriteObject("Lantern Exile", playerSprite, spawnPoint, 0.95f, 10);
+        playerShadow = CreateShadow("Exile Ground Shadow", spawnPoint + new Vector2(0.08f, -0.16f), 0.95f, 8);
         GameObject pulseObject = new GameObject("Pulse Ring");
         pulseLine = pulseObject.AddComponent<LineRenderer>();
         pulseLine.positionCount = 40;
@@ -484,7 +484,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         overlayTexture = CreateTexture(new Color(0.012f, 0.035f, 0.055f, 0.95f));
         cardTexture = CreateTexture(CardBlue);
         cardHoverTexture = CreateTexture(CardHover);
-        meterBackTexture = CreateTexture(new Color(0.02f, 0.08f, 0.10f, 0.9f));
+        meterBackTexture = CreateTexture(new Color(0.02f, 0.018f, 0.025f, 0.94f));
         meterXpTexture = CreateTexture(Cyan);
         meterHealthTexture = CreateTexture(Magenta);
 
@@ -843,13 +843,13 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     {
         switch (kind)
         {
-            case EnemyKind.Brute: return "Brute Drone";
-            case EnemyKind.Wool: return "Wool Sprite";
-            case EnemyKind.Moth: return "Lantern Moth";
-            case EnemyKind.Mushroom: return "Mushroom Thief";
-            case EnemyKind.Witch: return "Hedge Witch";
-            case EnemyKind.Boss: return "Mallow Warden";
-            default: return "Red Drone";
+            case EnemyKind.Brute: return "Horned Revenant";
+            case EnemyKind.Wool: return "Grave Hound";
+            case EnemyKind.Moth: return "Raven Wraith";
+            case EnemyKind.Mushroom: return "Plague Shambler";
+            case EnemyKind.Witch: return "Blood Cultist";
+            case EnemyKind.Boss: return "Ashen Warden";
+            default: return "Blood Wisp";
         }
     }
 
@@ -862,7 +862,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
     {
         bossSpawned = true;
         bossActive = true;
-        bossDisplayName = "MALLOW WARDEN";
+        bossDisplayName = "ASHEN WARDEN";
         bossMaxHealth = 520f + elapsed * 2.2f;
         bossHealth = bossMaxHealth;
         bossWarningTimer = 4.2f;
@@ -887,11 +887,11 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             StrafeSign = 1f,
             MotionSeed = 0.6f
         };
-        boss.Object = CreateSpriteObject("Mallow Warden", bossSpriteFallback(), position, 1.42f, 10);
-        boss.Shadow = CreateShadow("Mallow Warden Ground Shadow", position + new Vector2(0.08f, -0.20f), 1.42f, 8);
+        boss.Object = CreateSpriteObject("Ashen Warden", bossSpriteFallback(), position, 1.42f, 10);
+        boss.Shadow = CreateShadow("Ashen Warden Ground Shadow", position + new Vector2(0.08f, -0.20f), 1.42f, 8);
         enemies.Add(boss);
-        SpawnEffect("Boss Burst", position, bossBurstSprite, 2.2f, new Color(1f, 0.50f, 0.72f, 0.92f), 0.75f);
-        toastMessage = "MALLOW WARDEN APPROACHES  //  HOLD THE LIGHT";
+        SpawnEffect("Boss Burst", position, bossBurstSprite, 2.2f, new Color(0.82f, 0.24f, 0.16f, 0.94f), 0.75f);
+        toastMessage = "ASHEN WARDEN APPROACHES  //  THE ASH GATE OPENS";
         toastTimer = 4.2f;
     }
 
@@ -945,7 +945,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                         enemy.AbilityPhase = 1;
                         enemy.AbilityTimer = 0.52f;
                         enemy.ChargeTarget = playerPosition;
-                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 1.0f, new Color(1f, 0.55f, 0.76f, 0.76f), 0.54f);
+                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 1.0f, new Color(0.82f, 0.20f, 0.24f, 0.82f), 0.54f);
                     }
                     if (enemy.AbilityPhase == 1)
                     {
@@ -979,7 +979,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                     {
                         enemy.AbilityPhase = 3;
                         enemy.AbilityTimer = 0.30f;
-                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 0.78f, new Color(0.65f, 1f, 0.78f, 0.62f), 0.32f);
+                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 0.78f, new Color(0.62f, 0.48f, 0.26f, 0.70f), 0.32f);
                     }
                     if (enemy.AbilityPhase == 3)
                     {
@@ -1017,7 +1017,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                         enemy.AbilityPhase = 1;
                         enemy.AbilityTimer = 0.68f;
                         enemy.ChargeTarget = playerPosition;
-                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 1.18f, new Color(1f, 0.58f, 0.45f, 0.84f), 0.68f);
+                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 1.18f, new Color(0.90f, 0.32f, 0.12f, 0.88f), 0.68f);
                     }
                     if (enemy.AbilityPhase == 1)
                     {
@@ -1094,7 +1094,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                 // A hit interrupts the step but never teleports the player.
                 // Push the enemy away instead, so the player can recover in place.
                 playerVelocity = Vector2.zero;
-                SpawnEffect("Hit Spark", playerPosition, hitEffectSprite, enemy.Kind == EnemyKind.Boss ? 0.92f : 0.48f, new Color(1f, 0.70f, 0.82f, 0.94f), 0.34f);
+                SpawnEffect("Hit Spark", playerPosition, hitEffectSprite, enemy.Kind == EnemyKind.Boss ? 0.92f : 0.48f, new Color(0.96f, 0.78f, 0.55f, 0.94f), 0.34f);
                 Vector2 enemyAway = (Vector2)enemy.Object.transform.position - (Vector2)player.transform.position;
                 if (enemyAway.sqrMagnitude < 0.001f) enemyAway = Vector2.up;
                 enemyAway.Normalize();
@@ -1268,7 +1268,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             FireEnemyProjectile(boss, new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), true);
         }
         FireEnemyProjectile(boss, toPlayer, true);
-        SpawnEffect("Boss Burst", bossPosition, bossBurstSprite, 1.25f, new Color(1f, 0.48f, 0.68f, 0.84f), 0.38f);
+        SpawnEffect("Boss Burst", bossPosition, bossBurstSprite, 1.25f, new Color(0.90f, 0.33f, 0.16f, 0.88f), 0.38f);
     }
 
     private void UpdateEnemyProjectiles(float dt)
@@ -1287,7 +1287,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                 playerHealth -= projectile.Damage * Mathf.Max(0.35f, 1f - armorLevel * 0.12f);
                 contactCooldown = 0.9f;
                 playerVelocity = Vector2.zero;
-                SpawnEffect("Hit Spark", player.transform.position, hitEffectSprite, 0.44f, new Color(0.82f, 0.52f, 1f, 0.92f), 0.34f);
+                SpawnEffect("Hit Spark", player.transform.position, hitEffectSprite, 0.44f, new Color(0.69f, 0.45f, 0.75f, 0.92f), 0.34f);
                 RemoveEnemyProjectileAt(i);
                 if (playerHealth <= 0f)
                 {
@@ -1332,7 +1332,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                 projectile.HitIds.Add(enemy.Id);
                 projectile.Pierce -= 1;
                 enemy.Health -= projectile.Damage;
-                SpawnEffect("Hit Spark", enemy.Object.transform.position, hitEffectSprite, enemy.Kind == EnemyKind.Boss ? 0.60f : 0.30f, projectile.Kind == ProjectileKind.Needle ? new Color(1f, 0.92f, 0.70f, 0.96f) : new Color(1f, 0.72f, 0.86f, 0.90f), 0.28f);
+                SpawnEffect("Hit Spark", enemy.Object.transform.position, hitEffectSprite, enemy.Kind == EnemyKind.Boss ? 0.60f : 0.30f, projectile.Kind == ProjectileKind.Needle ? new Color(0.92f, 0.84f, 0.62f, 0.96f) : new Color(0.86f, 0.26f, 0.20f, 0.92f), 0.28f);
                 if (enemy.Health <= 0f && !defeatedBuffer.Contains(enemy)) defeatedBuffer.Add(enemy);
                 if (projectile.Pierce <= 0)
                 {
@@ -1362,14 +1362,14 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             bossHealth = 0f;
             score += 1500;
             kills += 5;
-            SpawnEffect("Boss Burst", position, bossBurstSprite, 2.8f, new Color(1f, 0.70f, 0.84f, 1f), 0.9f);
+            SpawnEffect("Boss Burst", position, bossBurstSprite, 2.8f, new Color(0.95f, 0.50f, 0.20f, 1f), 0.9f);
             for (int i = 0; i < 6; i++)
             {
                 Vector2 drop = position + Random.insideUnitCircle * 0.75f;
                 SpawnGem(drop, 5);
             }
             SpawnChest(position);
-            toastMessage = "MALLOW WARDEN FELLED  //  RELAY SURGE +1500";
+            toastMessage = "ASHEN WARDEN FELLED  //  RELIC SURGE +1500";
             toastTimer = 4.0f;
             return;
         }
@@ -1440,49 +1440,49 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         upgradeChoices.Clear();
         List<UpgradeChoice> pool = new List<UpgradeChoice>
         {
-            new UpgradeChoice(UpgradeType.WandDamage, "WEAPON", "THICKER ARC", "+4 Spark Wand damage. Wand level rises."),
-            new UpgradeChoice(UpgradeType.WandCount, "WEAPON", "SPLIT ARC", "+1 automatic bolt per volley."),
-            new UpgradeChoice(UpgradeType.WandCooldown, "WEAPON", "QUICK HAND", "Attack cooldown reduced by 10%."),
-            new UpgradeChoice(UpgradeType.Magnet, "PASSIVE", "GRAVITY THREAD", "+0.8 pickup radius for signal shards."),
-            new UpgradeChoice(UpgradeType.Vitality, "PASSIVE", "SECOND WIND", "+25 max health and restore 25 health."),
-            new UpgradeChoice(UpgradeType.Haste, "PASSIVE", "LIGHT FEET", "+0.55 movement speed."),
-            new UpgradeChoice(UpgradeType.Armor, "PASSIVE", "SOFT ARMOR", "Reduce contact and projectile damage by 12%."),
-            new UpgradeChoice(UpgradeType.Recovery, "PASSIVE", "RECOVERY TEA", "Regenerate 1.4 hearts every second."),
-            new UpgradeChoice(UpgradeType.Luck, "PASSIVE", "LUCKY THREAD", "More elite enemies drop story chests."),
-            new UpgradeChoice(UpgradeType.Area, "PASSIVE", "WIDE COMFORT", "Pulse and orbiting weapon radius +18%.")
+            new UpgradeChoice(UpgradeType.WandDamage, "WEAPON", "BLOOD SIGIL", "+4 Blood Sigil damage. Weapon level rises."),
+            new UpgradeChoice(UpgradeType.WandCount, "WEAPON", "SPLIT RUNE", "+1 automatic bolt per volley."),
+            new UpgradeChoice(UpgradeType.WandCooldown, "WEAPON", "RITUAL HASTE", "Attack cooldown reduced by 10%."),
+            new UpgradeChoice(UpgradeType.Magnet, "PASSIVE", "SOUL DRAW", "+0.8 pickup radius for fallen souls."),
+            new UpgradeChoice(UpgradeType.Vitality, "PASSIVE", "BONE PLATING", "+25 max health and restore 25 health."),
+            new UpgradeChoice(UpgradeType.Haste, "PASSIVE", "WRAITH STEP", "+0.55 movement speed."),
+            new UpgradeChoice(UpgradeType.Armor, "PASSIVE", "IRON VOW", "Reduce contact and projectile damage by 12%."),
+            new UpgradeChoice(UpgradeType.Recovery, "PASSIVE", "SANGUINE RITE", "Regenerate 1.4 life every second."),
+            new UpgradeChoice(UpgradeType.Luck, "PASSIVE", "GRAVE LUCK", "Elite demons are more likely to drop relic chests."),
+            new UpgradeChoice(UpgradeType.Area, "PASSIVE", "RITUAL REACH", "Pulse and orbiting weapon radius +18%.")
         };
 
         pool.Add(new UpgradeChoice(
             UpgradeType.HearthNotes,
             "WEAPON",
-            hasHearthNotes ? "HEARTH NOTES +" + (hearthNotesLevel + 1) : "HEARTH NOTES",
-            hasHearthNotes ? "Notes fire faster and gain another warm projectile." : "Every few seconds, send a radial ring of warm notes."));
+            hasHearthNotes ? "HEXED CHOIR +" + (hearthNotesLevel + 1) : "HEXED CHOIR",
+            hasHearthNotes ? "The cursed choir fires faster and gains another projectile." : "Every few seconds, send a radial ring of cursed notes."));
         pool.Add(new UpgradeChoice(
             UpgradeType.BerryBasket,
             "WEAPON",
-            hasBerryBasket ? "BERRY BASKET +" + (berryBasketLevel + 1) : "BERRY BASKET",
-            hasBerryBasket ? "Homing berry damage and cadence improve." : "Launch a homing berry at the nearest foe."));
+            hasBerryBasket ? "BLOOD VIAL +" + (berryBasketLevel + 1) : "BLOOD VIAL",
+            hasBerryBasket ? "Homing blood damage and cadence improve." : "Launch a homing blood orb at the nearest demon."));
         pool.Add(new UpgradeChoice(
             UpgradeType.SewingNeedle,
             "WEAPON",
-            hasSewingNeedle ? "NEEDLE KIT +" + (sewingNeedleLevel + 1) : "SEWING NEEDLE",
-            hasSewingNeedle ? "Fast piercing needle gains damage and pierce." : "Fire a fast piercing needle through the swarm."));
+            hasSewingNeedle ? "BONE NEEDLE +" + (sewingNeedleLevel + 1) : "BONE NEEDLE",
+            hasSewingNeedle ? "The bone shard gains damage and pierce." : "Fire a fast piercing bone shard through the swarm."));
         pool.Add(new UpgradeChoice(
             UpgradeType.FireflyJar,
             "WEAPON",
-            hasFireflyJar ? "FIREFLY JAR +" + (fireflyJarLevel + 1) : "FIREFLY JAR",
-            hasFireflyJar ? "Add another orbiting firefly and increase its damage." : "Summon orbiting fireflies that hurt nearby foes."));
+            hasFireflyJar ? "SOUL LANTERN +" + (fireflyJarLevel + 1) : "SOUL LANTERN",
+            hasFireflyJar ? "Add another orbiting soul and increase its damage." : "Summon orbiting souls that burn nearby demons."));
 
         if (!hasEmberRing)
         {
-            UpgradeChoice ring = new UpgradeChoice(UpgradeType.EmberRing, "PASSIVE", "EMBER RING", "Two orbiting sparks damage enemies nearby.");
+            UpgradeChoice ring = new UpgradeChoice(UpgradeType.EmberRing, "PASSIVE", "INFERNAL RING", "Two orbiting embers sear demons nearby.");
             upgradeChoices.Add(ring);
             pool.RemoveAll(choice => choice.Type == UpgradeType.EmberRing);
         }
 
         if (hasEmberRing && wandLevel >= 3 && !cinderVolley)
         {
-            UpgradeChoice evolution = new UpgradeChoice(UpgradeType.CinderVolley, "EVOLUTION", "CINDER VOLLEY", "Spark Wand + Ember Ring evolve into a piercing spread.");
+            UpgradeChoice evolution = new UpgradeChoice(UpgradeType.CinderVolley, "EVOLUTION", "HELLFIRE VOLLEY", "Blood Sigil + Infernal Ring evolve into a piercing spread.");
             upgradeChoices.Add(evolution);
         }
 
@@ -1495,7 +1495,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
         while (upgradeChoices.Count < 3)
         {
-            upgradeChoices.Add(new UpgradeChoice(UpgradeType.WandDamage, "WEAPON", "THICKER ARC", "+4 Spark Wand damage."));
+            upgradeChoices.Add(new UpgradeChoice(UpgradeType.WandDamage, "WEAPON", "BLOOD SIGIL", "+4 Blood Sigil damage."));
         }
     }
 
@@ -1637,7 +1637,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             if (enemy.Health <= 0f || enemy.Object == null) continue;
             if (Vector2.Distance(player.transform.position, enemy.Object.transform.position) > radius + enemy.Radius * 0.42f) continue;
             enemy.Health -= damage;
-            SpawnEffect("Hit Spark", enemy.Object.transform.position, hitEffectSprite, 0.24f, new Color(0.70f, 1f, 0.88f, 0.84f), 0.24f);
+            SpawnEffect("Hit Spark", enemy.Object.transform.position, hitEffectSprite, 0.24f, new Color(0.68f, 0.76f, 0.68f, 0.84f), 0.24f);
             if (enemy.Health <= 0f && !defeated.Contains(enemy)) defeated.Add(enemy);
         }
         foreach (Enemy enemy in defeated) if (enemies.Contains(enemy)) DefeatEnemy(enemy);
@@ -1690,7 +1690,7 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         pulseCooldown = 1.25f;
         pulseTimer = 0.42f;
         pulseRadius = 0.35f;
-        SpawnEffect("Boss Burst", player.transform.position, bossBurstSprite, 0.88f * areaMultiplier, new Color(0.72f, 0.92f, 1f, 0.82f), 0.42f);
+        SpawnEffect("Boss Burst", player.transform.position, bossBurstSprite, 0.88f * areaMultiplier, new Color(0.72f, 0.62f, 0.42f, 0.86f), 0.42f);
         defeatedBuffer.Clear();
         foreach (Enemy enemy in enemies)
         {

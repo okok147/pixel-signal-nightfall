@@ -207,49 +207,30 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         authoredUiAtlas = Resources.Load<Texture2D>("NightfallMeadow/ui_atlas_512");
         if (authoredUiAtlas != null) authoredUiAtlas.filterMode = FilterMode.Point;
 
+        // Use a hand-authored gothic palette for every panel. The source demo
+        // atlas remains available for reference, but its parchment UI would
+        // pull the game back toward the old cute/fairytale direction.
         woodPanel = CutePixelKit.PanelTexture(
-            CutePixelKit.Hex("A86D62"), CutePixelKit.MascotOutline, CutePixelKit.Hex("F6C6B6"), 16, 3);
-        Texture2D rawParchmentPanel = CutePixelKit.CropAtlasTexture(
-            authoredUiAtlas, "Authored Parchment Panel", 15, 35, 229, 65);
-        parchmentPanel = CutePixelKit.FlattenPanelInterior(
-            rawParchmentPanel,
-            "Clean Authored Parchment Panel",
-            10,
-            CutePixelKit.Hex("F6E8BD")) ?? CutePixelKit.PanelTexture(
-                CutePixelKit.Hex("F6E8BD"), CutePixelKit.Hex("5D3E39"), CutePixelKit.Hex("FFF7D9"), 16, 3);
-        parchmentHover = CutePixelKit.CropAtlasTexture(
-            authoredUiAtlas, "Authored Hover Panel", 134, 116, 106, 31) ?? CutePixelKit.PanelTexture(
-                CutePixelKit.Hex("FFF3CB"), CutePixelKit.Hex("9C5B4A"), Color.white, 16, 3);
+            CutePixelKit.Hex("030306"), CutePixelKit.Hex("281319"), CutePixelKit.Hex("0B080A"), 16, 3);
+        parchmentPanel = CutePixelKit.PanelTexture(
+            CutePixelKit.Hex("040309"), CutePixelKit.Hex("3C1D18"), CutePixelKit.Hex("0F0B10"), 16, 3);
+        parchmentHover = CutePixelKit.PanelTexture(
+            CutePixelKit.Hex("07030A"), CutePixelKit.Hex("6B3D1A"), CutePixelKit.Hex("1C1114"), 16, 3);
         darkPanel = CutePixelKit.PanelTexture(
-            new Color(0.16f, 0.115f, 0.22f, 0.95f), CutePixelKit.MascotPink, CutePixelKit.Hex("765A78"), 16, 3);
-        slotPanelTexture = CutePixelKit.CropAtlasTexture(
-            authoredUiAtlas, "Authored Equipment Slot", 15, 178, 51, 49) ?? darkPanel;
-        Texture2D rawCardPanel = CutePixelKit.CropAtlasTexture(
-            authoredUiAtlas, "Authored Upgrade Card", 15, 260, 148, 148);
-        Texture2D rawCardMint = CutePixelKit.CropAtlasTexture(
-            authoredUiAtlas, "Authored Rare Upgrade Card", 177, 260, 148, 148);
-        Texture2D rawCardCoral = CutePixelKit.CropAtlasTexture(
-            authoredUiAtlas, "Authored Evolution Upgrade Card", 339, 260, 148, 148);
-        cardPanelTexture = CutePixelKit.FlattenPanelInterior(
-            rawCardPanel,
-            "Clean Authored Upgrade Card",
-            16,
-            CutePixelKit.Hex("F6E8BD")) ?? parchmentPanel;
-        cardMintTexture = CutePixelKit.FlattenPanelInterior(
-            rawCardMint,
-            "Clean Authored Rare Upgrade Card",
-            16,
-            CutePixelKit.Hex("E4F0D7")) ?? parchmentHover;
-        cardCoralTexture = CutePixelKit.FlattenPanelInterior(
-            rawCardCoral,
-            "Clean Authored Evolution Upgrade Card",
-            16,
-            CutePixelKit.Hex("F7D8D4")) ?? parchmentHover;
-        barBack = CutePixelKit.SolidTexture(new Color(0.12f, 0.085f, 0.18f, 0.94f), "Bar Back");
-        healthFill = CutePixelKit.SolidTexture(CutePixelKit.MascotBlush, "Health Fill");
-        xpFill = CutePixelKit.SolidTexture(CutePixelKit.MascotMint, "XP Fill");
-        pulseFill = CutePixelKit.SolidTexture(CutePixelKit.MascotLilac, "Pulse Fill");
-        veil = CutePixelKit.SolidTexture(new Color(0.10f, 0.065f, 0.16f, 0.78f), "Overlay Veil");
+            new Color(0.003f, 0.002f, 0.005f, 0.96f), CutePixelKit.Hex("2A0E16"), CutePixelKit.Hex("08070A"), 16, 3);
+        slotPanelTexture = CutePixelKit.PanelTexture(
+            CutePixelKit.Hex("020205"), CutePixelKit.Hex("29150F"), CutePixelKit.Hex("0B090C"), 16, 3);
+        cardPanelTexture = CutePixelKit.PanelTexture(
+            CutePixelKit.Hex("030206"), CutePixelKit.Hex("2B1414"), CutePixelKit.Hex("0E080B"), 16, 3);
+        cardMintTexture = CutePixelKit.PanelTexture(
+            CutePixelKit.Hex("030708"), CutePixelKit.Hex("1A2D29"), CutePixelKit.Hex("0B100F"), 16, 3);
+        cardCoralTexture = CutePixelKit.PanelTexture(
+            CutePixelKit.Hex("060308"), CutePixelKit.Hex("3B1B17"), CutePixelKit.Hex("12090D"), 16, 3);
+        barBack = CutePixelKit.SolidTexture(new Color(0.02f, 0.018f, 0.025f, 0.96f), "Bar Back");
+        healthFill = CutePixelKit.SolidTexture(CutePixelKit.Hex("9E3345"), "Health Fill");
+        xpFill = CutePixelKit.SolidTexture(CutePixelKit.Hex("C89245"), "XP Fill");
+        pulseFill = CutePixelKit.SolidTexture(CutePixelKit.Hex("716284"), "Pulse Fill");
+        veil = CutePixelKit.SolidTexture(new Color(0.01f, 0.008f, 0.015f, 0.86f), "Overlay Veil");
     }
 
     private void BuildSprites()
@@ -275,7 +256,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             heroFrames = new Sprite[4];
             for (int frame = 0; frame < heroFrames.Length; frame++)
             {
-                heroFrames[frame] = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Meadow Courier " + frame, frame, 1);
+                heroFrames[frame] = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Lantern Exile Atlas " + frame, frame, 1);
             }
             heroSprite = heroFrames[0];
             portraitSprite = heroSprite;
@@ -323,8 +304,8 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             "..OBBB..BBBO..",
             "..............."
         };
-        heroSprite = CutePixelKit.CreateSprite("Meadow Courier", heroRows, hero, 16f);
-        portraitSprite = CutePixelKit.CreateSprite("Courier Portrait", heroRows, hero, 13f);
+        heroSprite = CutePixelKit.CreateSprite("Lantern Exile", heroRows, hero, 16f);
+        portraitSprite = CutePixelKit.CreateSprite("Lantern Exile Legacy Portrait", heroRows, hero, 13f);
 
         slimeSprite = CutePixelKit.CreateSprite(
             "Dusk Slime",
@@ -464,13 +445,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         for (int frame = 0; frame < courierFrames.Length; frame++)
         {
             heroFrames[frame] = CutePixelKit.CreateSprite(
-                "Tiny Meadow Courier " + frame,
+                "Lantern Exile Legacy Frame " + frame,
                 courierFrames[frame],
                 courierPalette,
                 16f);
         }
         heroSprite = heroFrames[0];
-        portraitSprite = CutePixelKit.CreateSprite("Tiny Courier Portrait", courierFrames[0], courierPalette, 13f);
+        portraitSprite = CutePixelKit.CreateSprite("Lantern Exile Legacy Portrait", courierFrames[0], courierPalette, 13f);
 
         Dictionary<char, Color> berryPalette = new Dictionary<char, Color>
         {
@@ -512,7 +493,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             { 'C', CutePixelKit.MascotCream }, { 'R', CutePixelKit.MascotBlush }
         };
         woolSprite = CutePixelKit.CreateSprite(
-            "Wool Sprite",
+                "Grave Hound",
             new[]
             {
                 "............", "...OOOOOO...", "..OOMMMMOO..", ".OOMMMMMMOO.",
@@ -529,7 +510,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             { 'C', CutePixelKit.MascotCream }
         };
         mothSprite = CutePixelKit.CreateSprite(
-            "Lantern Moth",
+            "Raven Wraith",
             new[]
             {
                 "....O..O....", "...OO..OO...", "..OOLLLLOO..", ".OOLLLLLLOO.",
@@ -546,7 +527,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             { 'M', CutePixelKit.MascotMint }
         };
         mushroomSprite = CutePixelKit.CreateSprite(
-            "Mushroom Thief",
+            "Plague Shambler",
             new[]
             {
                 "....OOOO....", "..OOPPPPOO..", ".OOPPPPPPPO.", "OOPPRPPRPPOO",
@@ -563,7 +544,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             { 'Y', CutePixelKit.MascotGold }
         };
         witchSprite = CutePixelKit.CreateSprite(
-            "Hedge Witch",
+            "Blood Cultist",
             new[]
             {
                 "....OOOO....", "...OLLLLO...", "..OLLLLLLLO..", ".OLLLLLLLLLO.",
@@ -581,7 +562,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             { 'M', CutePixelKit.MascotMint }
         };
         bossSprite = CutePixelKit.CreateSprite(
-            "Mallow Warden",
+            "Ashen Warden",
             new[]
             {
                 "....OO....OO....", "...OOOYYYYOOO...", "..OOYYYYYYYYOO..", ".OOYYYYYYYYYYOO.",
@@ -698,14 +679,144 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             "Tiny Firefly Jar Icon",
             new[] { "..MMM..", ".MOOOM.", ".MOYOM.", ".MOOOM.", "..MMM..", "...Y...", "......." },
             new Dictionary<char, Color> { { 'M', CutePixelKit.MascotMint }, { 'O', CutePixelKit.MascotOutline }, { 'Y', CutePixelKit.MascotGold } }, 12f);
+
+        BuildGothicSprites();
+    }
+
+    private void BuildGothicSprites()
+    {
+        Dictionary<char, Color> palette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.Hex("0B0B10") },
+            { 'A', CutePixelKit.Hex("252A35") },
+            { 'B', CutePixelKit.Hex("A88754") },
+            { 'R', CutePixelKit.Hex("9E3345") },
+            { 'S', CutePixelKit.Hex("D9C9A8") },
+            { 'F', CutePixelKit.Hex("D6683D") },
+            { 'G', CutePixelKit.Hex("718F89") },
+            { 'P', CutePixelKit.Hex("695877") },
+            { 'X', CutePixelKit.Hex("F2E9D0") }
+        };
+
+        string[] exileRows =
+        {
+            "....OO....OO....", "...OOOOOOOOOO...", "..OOAAAAAAAAOO..", ".OOAASSSSSSAAO..",
+            "OOAASSSSSSSAAOO.", "OOAARRFFRRRAAOO.", ".OOAARRRRRAAAO..", "..OOAAAAAAOO....",
+            "...OOABBAOO.....", "...OOABBAOO.....", "..OOAAAAAAOO....", "..OOAAAAAAOO....",
+            "...OO..OO.......", "...OO..OO.......", "................", "................"
+        };
+        heroFrames = new Sprite[4];
+        for (int i = 0; i < heroFrames.Length; i++)
+        {
+            string[] frameRows = exileRows;
+            if (i % 2 == 1)
+            {
+                frameRows = (string[])exileRows.Clone();
+                frameRows[12] = "..OO...OO.......";
+                frameRows[13] = "..OOO.OOO.......";
+            }
+            heroFrames[i] = CutePixelKit.CreateSprite("Lantern Exile Gothic Frame " + i, frameRows, palette, 16f);
+        }
+        heroSprite = heroFrames[0];
+        portraitSprite = CutePixelKit.CreateSprite("Lantern Exile Portrait", exileRows, palette, 13f);
+
+        slimeSprite = CutePixelKit.CreateSprite(
+            "Blood Wisp Gothic",
+            new[]
+            {
+                "....OO....OO....", "...OOOOOOOOOO...", "..OORRRRRRRROO..", ".OORRFFRRFFRROO.",
+                "OORRRRRRRRRRRROO", "OORRRRXXXXRRRROO", ".OORRRRRRRRRROO.", "..OORRRRRRRROO..",
+                "...OOORRRROOO...", ".....OO..OO.....", "................", "................"
+            },
+            palette, 16f);
+        hornSprite = CutePixelKit.CreateSprite(
+            "Horned Revenant Gothic",
+            new[]
+            {
+                "..B.OOO..OOO.B..", ".BBOOOOOOOOOOBB.", "..OOAAABBAAAOO..", ".OOAAAAAAAAAAOO.",
+                "OOAAARRRRRRAAAOO", "OOAARRXXXXRRAAOO", ".OOAAAAAAAAAAOO.", "..OOAAAAAAAAOO..",
+                "...OOAAOOAAOO...", "...OOAAOOAAOO...", "....OO....OO....", "................"
+            },
+            palette, 16f);
+        woolSprite = CutePixelKit.CreateSprite(
+            "Grave Hound Gothic",
+            new[]
+            {
+                "................", "..OOO....OOO....", ".OOAAAAOOAAAAO..", "OOAAAAAAAAAAAAOO",
+                "OOAARRAAAAARRAO.", ".OOAAAAAAAAAAOO.", "..OOAAAAAAAO....", "...OOO..OOO.....",
+                "...OOO..OOO.....", "................", "................", "................"
+            },
+            palette, 16f);
+        mothSprite = CutePixelKit.CreateSprite(
+            "Raven Wraith Gothic",
+            new[]
+            {
+                "..OO......OO....", ".OOO......OOO...", "OOAOOO..OOOAO...", "OOAAAOOOOAAAO...",
+                ".OOAARRRRAAOO...", "..OOAAXXAAOO....", "...OOAAAAOO.....", "..OOO....OOO....",
+                ".OO........OO...", "OO..........OO..", "................", "................"
+            },
+            palette, 16f);
+        mushroomSprite = CutePixelKit.CreateSprite(
+            "Plague Shambler Gothic",
+            new[]
+            {
+                "................", "....OO....OO....", "..OOORRRROOO....", ".OORRRRRRRRRRO..",
+                "OORRFFRRFFRRRROO", "OOORRRRRRRRRROOO", "....OOAAAAOO....", "...OOAXXXAOO....",
+                "...OOAAAAOO.....", "...OOAAAAOO.....", "................", "................"
+            },
+            palette, 16f);
+        witchSprite = CutePixelKit.CreateSprite(
+            "Blood Cultist Gothic",
+            new[]
+            {
+                "......OOOO......", ".....OOOOOO.....", "....OOPPPPOO....", "...OOPPPPPPOO...",
+                "..OOPPXXPPPOO...", ".OOPPPPRRRPPPO..", "..OOOARRRAOOO...", "...OOAAAAOO.....",
+                "..OOOAAAAOOO....", ".OOOAAAAAAOOO...", "....OO..OO......", "................"
+            },
+            palette, 16f);
+        bossSprite = CutePixelKit.CreateSprite(
+            "Ashen Warden Gothic",
+            new[]
+            {
+                "...BBOO..OOBB...", "..BBOOOOOOOOBB..", ".BOOAAAAAAAAOOB.",
+                "OOAAAAAAAAAAAAOO", "OOAABBRRRRBBAAOO", "OOAARRXXXXRRAAOO",
+                ".OOAAAAAAAAAAOO.", "..OOAAAAAAAAOO..", "..OOAAABBAAAOO..",
+                ".OOAAABBBBBAAO..", "..OOO..OO..OOO..", "................",
+                "................", "................", "................", "................"
+            },
+            palette, 16f);
+
+        sparkSprite = CutePixelKit.CreateSprite("Blood Sigil Projectile", new[] { "...B...", "..BRB..", ".BRRRB.", "BRRXRRB", ".BRRRB.", "..BRB..", "...B..." }, palette, 16f);
+        noteSprite = CutePixelKit.CreateSprite("Hexed Choir Projectile", new[] { "...R...", "..RRR..", ".RRXRR.", "..RRR..", "...R...", "......." }, palette, 16f);
+        berrySprite = CutePixelKit.CreateSprite("Blood Vial Projectile", new[] { "..RR..", ".RRRR.", "RRXRRR", ".RRRR.", "..RR..", "......" }, palette, 16f);
+        needleSprite = CutePixelKit.CreateSprite("Bone Needle Projectile", new[] { ".....X", "....XX", "...XX.", "..XX..", ".XX...", "X....." }, palette, 16f);
+        curseSeedSprite = CutePixelKit.CreateSprite("Curse Relic Projectile", new[] { "...P...", "..PBP..", ".PBBBP.", "..PBP..", "...P...", "......." }, palette, 16f);
+        bossOrbSprite = CutePixelKit.CreateSprite("Ash Orb Projectile", new[] { "...B...", "..BBB..", ".BBRBB.", "..BBB..", "...B...", "......." }, palette, 16f);
+        hitSparkSprite = CutePixelKit.CreateSprite("Blood Impact", new[] { "...X...", ".X...X.", ".......", ".X...X.", "...X...", "......." }, palette, 16f);
+        bossBurstSprite = CutePixelKit.CreateSprite("Ashen Warden Burst", new[] { "...B...", ".B...B.", "B..R..B", "...R...", "B..R..B", ".B...B.", "...B..." }, palette, 16f);
+        telegraphSprite = CutePixelKit.CreateSprite("Demon Charge Telegraph", new[] { ".RRRRRR.", "R......R", "R......R", "R......R", "R......R", "R......R", ".RRRRRR." }, palette, 16f);
+        shardSprite = CutePixelKit.CreateSprite("Soul Shard", new[] { "..B..", ".BBB.", "BBXBB", ".BBB.", "..B.." }, palette, 16f);
+        chestSprite = CutePixelKit.CreateSprite("Relic Chest", new[] { "..BBBB..", ".BAAAAB.", "BAAXXAAB", "BABBAB..", "BBBRBBB.", "........" }, palette, 16f);
+        orbitSprite = CutePixelKit.CreateSprite("Infernal Ring Orb", new[] { ".FF.", "FBBF", ".FF.", "...." }, palette, 16f);
+
+        wandIcon = CutePixelKit.CreateSprite("Blood Sigil Icon", new[] { "..B....", ".BBB...", "..R....", "..R....", ".RR....", "RR.....", "......." }, palette, 12f);
+        ringIcon = CutePixelKit.CreateSprite("Infernal Ring Icon", new[] { "..R.R..", ".RRRRR.", "RR...RR", "RR...RR", ".RRRRR.", "..RRR..", "......." }, palette, 12f);
+        magnetIcon = CutePixelKit.CreateSprite("Soul Draw Icon", new[] { "BB...BB", "BB...BB", ".B...B.", "..BBB..", "...B...", ".......", "......." }, palette, 12f);
+        heartIcon = CutePixelKit.CreateSprite("Bone Plating Icon", new[] { ".BB.BB.", "BBBBBBB", "BBBXBBB", ".BBBBB.", "..BBB..", "...B...", "......." }, palette, 12f);
+        bootIcon = CutePixelKit.CreateSprite("Wraith Step Icon", new[] { "...G...", "..GGG..", ".GGGG..", "GGGGG..", "..GG...", ".GGG...", "......." }, palette, 12f);
+        pulseIcon = CutePixelKit.CreateSprite("Abyssal Pulse Icon", new[] { "...P...", ".PPP...", "PPPPPPP", ".PPP...", "...P...", ".......", "......." }, palette, 12f);
+        notesIcon = CutePixelKit.CreateSprite("Hexed Choir Icon", new[] { "...R...", "..RRR..", ".RRXRR.", "..RRR..", "...R...", ".......", "......." }, palette, 12f);
+        berryIcon = CutePixelKit.CreateSprite("Blood Vial Icon", new[] { "..RR..", ".RRRR.", "RRXRRR", ".RRRR.", "..RR..", ".......", "......." }, palette, 12f);
+        needleIcon = CutePixelKit.CreateSprite("Bone Needle Icon", new[] { ".....X", "....XX", "...XX.", "..XX..", ".XX...", "X.....", "......." }, palette, 12f);
+        fireflyIcon = CutePixelKit.CreateSprite("Soul Lantern Icon", new[] { "..GG..", ".GAAAG.", ".GABBG", ".GAAAG.", "..GG..", "...B...", "......." }, palette, 12f);
     }
 
     private void BuildFairytaleField()
     {
-        GameObject root = new GameObject("Fairytale Meadow");
-        farDepthLayer = CreateDepthLayer(root.transform, "2.5D Far Meadow");
-        midDepthLayer = CreateDepthLayer(root.transform, "2.5D Mid Meadow");
-        nearDepthLayer = CreateDepthLayer(root.transform, "2.5D Near Meadow");
+        GameObject root = new GameObject("Ashen Cathedral Grounds");
+        farDepthLayer = CreateDepthLayer(root.transform, "2.5D Ashen Far Depth");
+        midDepthLayer = CreateDepthLayer(root.transform, "2.5D Ashen Mid Depth");
+        nearDepthLayer = CreateDepthLayer(root.transform, "2.5D Ashen Near Depth");
 
         authoredBackground = Resources.Load<Texture2D>("NightfallMeadow/background_moonlit_clearing_480x270");
         if (authoredBackground != null)
@@ -719,11 +830,12 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             BuildPolygonBackdrop();
             Build2PointFiveProps();
             Build2PointFiveLighting();
+            BuildGothicSceneProps();
             return;
         }
 
-        CutePixelKit.RectObject(farDepthLayer, "Meadow Ground", Vector2.zero, new Vector2(15.8f, 9.0f), CutePixelKit.Hex("273B36"), -42);
-        CutePixelKit.RectObject(farDepthLayer, "Moon Wash", new Vector2(1.7f, 1.1f), new Vector2(9.4f, 5.8f), new Color(0.30f, 0.42f, 0.48f, 0.18f), -41);
+        CutePixelKit.RectObject(farDepthLayer, "Ashen Ground", Vector2.zero, new Vector2(15.8f, 9.0f), CutePixelKit.Hex("17151B"), -42);
+        CutePixelKit.RectObject(farDepthLayer, "Ash Wash", new Vector2(1.7f, 1.1f), new Vector2(9.4f, 5.8f), new Color(0.28f, 0.25f, 0.24f, 0.16f), -41);
 
         Vector2[] stones =
         {
@@ -733,8 +845,8 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         };
         foreach (Vector2 point in stones)
         {
-            CutePixelKit.RectObject(root.transform, "Soft Stone", point, new Vector2(0.38f, 0.18f), CutePixelKit.Hex("66716E"), -35);
-            CutePixelKit.RectObject(root.transform, "Stone Light", point + new Vector2(-0.06f, 0.055f), new Vector2(0.18f, 0.045f), CutePixelKit.Hex("94A19A"), -34);
+            CutePixelKit.RectObject(root.transform, "Broken Stone", point, new Vector2(0.38f, 0.18f), CutePixelKit.Hex("3A3436"), -35);
+            CutePixelKit.RectObject(root.transform, "Stone Ash", point + new Vector2(-0.06f, 0.055f), new Vector2(0.18f, 0.045f), CutePixelKit.Hex("766B63"), -34);
         }
 
         Vector2[] flowers =
@@ -745,8 +857,8 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         };
         foreach (Vector2 point in flowers)
         {
-            CutePixelKit.RectObject(root.transform, "Flower Stem", point + new Vector2(0f, -0.08f), new Vector2(0.035f, 0.16f), CutePixelKit.Leaf, -33);
-            CutePixelKit.RectObject(root.transform, "Flower", point, new Vector2(0.11f, 0.11f), CutePixelKit.Peach, -32);
+            CutePixelKit.RectObject(root.transform, "Withered Stem", point + new Vector2(0f, -0.08f), new Vector2(0.035f, 0.16f), CutePixelKit.LeafDark, -33);
+            CutePixelKit.RectObject(root.transform, "Ember Thorn", point, new Vector2(0.11f, 0.11f), CutePixelKit.Peach, -32);
         }
 
         Vector2[] fireflies =
@@ -757,12 +869,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         };
         foreach (Vector2 point in fireflies)
         {
-            CutePixelKit.RectObject(root.transform, "Firefly Glow", point, new Vector2(0.12f, 0.12f), new Color(1f, 0.83f, 0.42f, 0.25f), -29);
-            CutePixelKit.RectObject(root.transform, "Firefly", point, new Vector2(0.035f, 0.035f), CutePixelKit.Gold, -28);
+            CutePixelKit.RectObject(root.transform, "Soul Ember Glow", point, new Vector2(0.12f, 0.12f), new Color(0.90f, 0.30f, 0.12f, 0.24f), -29);
+            CutePixelKit.RectObject(root.transform, "Soul Ember", point, new Vector2(0.035f, 0.035f), CutePixelKit.Gold, -28);
         }
 
         Build2PointFiveProps();
         Build2PointFiveLighting();
+        BuildGothicSceneProps();
     }
 
     private void BuildPolygonBackdrop()
@@ -778,7 +891,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(WorldHalfWidth + 2f, WorldHalfHeight + 2f),
                 new Vector2(-WorldHalfWidth - 2f, WorldHalfHeight + 2f)
             },
-            CutePixelKit.Hex("17263D"),
+            CutePixelKit.Hex("090A10"),
             -50);
         CreatePolygonObject(
             "Low Poly Sky Facet Blue",
@@ -789,7 +902,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(-5.2f, -1.3f), new Vector2(0.8f, -1.8f),
                 new Vector2(3.0f, 1.7f), new Vector2(-1.0f, 2.4f)
             },
-            new Color(0.16f, 0.24f, 0.40f, 0.92f),
+            new Color(0.09f, 0.10f, 0.17f, 0.94f),
             -49);
         CreatePolygonObject(
             "Low Poly Sky Facet Plum",
@@ -800,7 +913,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(-2.6f, -1.4f), new Vector2(3.6f, -1.8f),
                 new Vector2(4.4f, 1.8f), new Vector2(0.2f, 2.2f)
             },
-            new Color(0.25f, 0.18f, 0.35f, 0.88f),
+            new Color(0.15f, 0.07f, 0.14f, 0.92f),
             -48);
         CreatePolygonObject(
             "Low Poly Meadow Plateau",
@@ -813,7 +926,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(18f, -20f), new Vector2(WorldHalfWidth, -16f),
                 new Vector2(WorldHalfWidth, -WorldHalfHeight), new Vector2(-WorldHalfWidth, -WorldHalfHeight)
             },
-            new Color(0.12f, 0.32f, 0.30f, 1f),
+            new Color(0.07f, 0.08f, 0.10f, 1f),
             -40);
         CreatePolygonObject(
             "Low Poly Meadow Highlight",
@@ -826,7 +939,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(7.0f, -0.92f), new Vector2(2.2f, -1.72f),
                 new Vector2(-2.4f, -1.45f)
             },
-            new Color(0.20f, 0.42f, 0.37f, 0.76f),
+            new Color(0.19f, 0.10f, 0.10f, 0.78f),
             -39);
         CreatePolygonObject(
             "Low Poly Distant Ridge",
@@ -841,7 +954,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(30f, 0.45f), new Vector2(WorldHalfWidth, 1.0f),
                 new Vector2(WorldHalfWidth, -0.72f), new Vector2(-WorldHalfWidth, -0.72f)
             },
-            new Color(0.08f, 0.23f, 0.28f, 0.84f),
+            new Color(0.035f, 0.040f, 0.060f, 0.90f),
             -38);
 
         BuildLargeMeadowTiles();
@@ -857,10 +970,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 float skew = Mathf.Sin((x + y) * 0.23f) * 0.9f;
                 Color tileColor;
                 int palette = Mathf.Abs((x / 12) + (y / 10)) % 4;
-                if (palette == 0) tileColor = new Color(0.11f, 0.29f, 0.30f, 0.96f);
-                else if (palette == 1) tileColor = new Color(0.13f, 0.33f, 0.31f, 0.96f);
-                else if (palette == 2) tileColor = new Color(0.12f, 0.30f, 0.34f, 0.96f);
-                else tileColor = new Color(0.15f, 0.28f, 0.34f, 0.96f);
+                if (palette == 0) tileColor = new Color(0.07f, 0.065f, 0.08f, 0.98f);
+                else if (palette == 1) tileColor = new Color(0.09f, 0.075f, 0.08f, 0.98f);
+                else if (palette == 2) tileColor = new Color(0.08f, 0.07f, 0.10f, 0.98f);
+                else tileColor = new Color(0.12f, 0.075f, 0.065f, 0.98f);
 
                 CreatePolygonObject(
                     "Meadow Tile " + tileIndex++,
@@ -921,10 +1034,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
         CutePixelKit.RectObject(
             nearDepthLayer,
-            "Near Meadow Edge",
+            "Ashen Edge",
             new Vector2(0f, -4.12f),
             new Vector2(16f, 0.34f),
-            new Color(0.07f, 0.13f, 0.16f, 0.32f),
+            new Color(0.08f, 0.045f, 0.055f, 0.40f),
             130);
 
         BuildPolygonMeadowFacets();
@@ -941,7 +1054,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(-0.12f, -0.42f), new Vector2(0.14f, -0.42f),
                 new Vector2(0.11f, 0.42f), new Vector2(-0.10f, 0.42f)
             },
-            CutePixelKit.Hex("765042"),
+            CutePixelKit.Hex("2B2525"),
             sortingOrder);
         GameObject canopy = CreatePolygonObject(
             name + " Canopy",
@@ -954,7 +1067,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(0.78f, -0.08f), new Vector2(0.30f, -0.48f),
                 new Vector2(-0.34f, -0.46f)
             },
-            CutePixelKit.Hex("2D6A5B"),
+            CutePixelKit.Hex("182326"),
             sortingOrder + 1);
         canopy.transform.localScale = Vector3.one * scale;
         GameObject canopyFacet = CreatePolygonObject(
@@ -966,7 +1079,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(-0.42f, -0.12f), new Vector2(-0.07f, 0.64f),
                 new Vector2(0.42f, -0.05f), new Vector2(0.08f, -0.30f)
             },
-            CutePixelKit.Hex("63B36F"),
+            CutePixelKit.Hex("6B3E34"),
             sortingOrder + 2);
         canopyFacet.transform.localScale = Vector3.one * scale;
         CreatePolygonObject(
@@ -978,7 +1091,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(-0.62f, -0.10f), new Vector2(-0.18f, -0.22f),
                 new Vector2(0.70f, -0.06f), new Vector2(0.18f, 0.12f)
             },
-            new Color(0.035f, 0.05f, 0.10f, 0.55f),
+            new Color(0.01f, 0.008f, 0.015f, 0.72f),
             sortingOrder - 1);
     }
 
@@ -994,7 +1107,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(0f, -0.05f), new Vector2(0.24f, 0.66f),
                 new Vector2(0.34f, -0.30f)
             },
-            CutePixelKit.Hex("72C47C"),
+            CutePixelKit.Hex("4D3433"),
             sortingOrder);
         grass.transform.localScale = Vector3.one * scale;
     }
@@ -1051,7 +1164,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(1.15f, -0.24f), new Vector2(0.32f, 0.16f),
                 new Vector2(-1.18f, 0.34f)
             },
-            new Color(0.20f, 0.35f, 0.36f, 0.34f),
+            new Color(0.12f, 0.10f, 0.13f, 0.55f),
             -22);
         CreatePolygonObject(
             "Moonlit Ground Facet Right",
@@ -1063,7 +1176,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(2.10f, -0.12f), new Vector2(1.16f, 0.32f),
                 new Vector2(-0.30f, 0.12f)
             },
-            new Color(0.25f, 0.29f, 0.42f, 0.30f),
+            new Color(0.16f, 0.08f, 0.10f, 0.50f),
             -21);
         CreatePolygonObject(
             "Moonlit Ground Facet Center",
@@ -1075,7 +1188,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 new Vector2(1.95f, -0.10f), new Vector2(0.58f, 0.42f),
                 new Vector2(-1.18f, 0.30f)
             },
-            new Color(0.16f, 0.30f, 0.32f, 0.28f),
+            new Color(0.09f, 0.09f, 0.11f, 0.52f),
             -20);
 
         Vector2[] canopyPoints =
@@ -1097,9 +1210,131 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(-side * 0.46f, 0.56f), new Vector2(-side * 0.70f, -0.18f)
                 },
                 i % 2 == 0
-                    ? new Color(0.10f, 0.26f, 0.30f, 0.58f)
-                    : new Color(0.18f, 0.24f, 0.37f, 0.54f),
+                    ? new Color(0.06f, 0.07f, 0.09f, 0.70f)
+                    : new Color(0.10f, 0.06f, 0.09f, 0.65f),
                 -14);
+        }
+    }
+
+    private void BuildGothicSceneProps()
+    {
+        Vector2[] gravePositions =
+        {
+            new Vector2(-5.25f, 1.18f), new Vector2(5.28f, 1.16f),
+            new Vector2(-4.70f, -1.48f), new Vector2(4.72f, -1.44f)
+        };
+        for (int i = 0; i < gravePositions.Length; i++)
+        {
+            CreateGothicGravestone(midDepthLayer, "Ashen Gravestone " + i, gravePositions[i], 0.62f, -5 + i);
+        }
+
+        CreateGothicBrazier(nearDepthLayer, "Left Blood Brazier", new Vector2(-3.80f, -2.30f), 0.72f, 132);
+        CreateGothicBrazier(nearDepthLayer, "Right Blood Brazier", new Vector2(3.80f, -2.30f), 0.72f, 132);
+
+        CreatePolygonObject(
+            "Ashen Cathedral Altar",
+            midDepthLayer,
+            new Vector2(0f, 3.12f),
+            new[]
+            {
+                new Vector2(-1.10f, -0.26f), new Vector2(-0.76f, 0.28f),
+                new Vector2(-0.30f, 0.52f), new Vector2(0f, 0.82f),
+                new Vector2(0.30f, 0.52f), new Vector2(0.76f, 0.28f),
+                new Vector2(1.10f, -0.26f), new Vector2(0.74f, -0.48f),
+                new Vector2(-0.74f, -0.48f)
+            },
+            CutePixelKit.Hex("15141B"),
+            -7);
+        CreatePolygonObject(
+            "Ashen Cathedral Altar Rune",
+            midDepthLayer,
+            new Vector2(0f, 3.12f),
+            new[]
+            {
+                new Vector2(-0.26f, -0.08f), new Vector2(0f, 0.34f),
+                new Vector2(0.26f, -0.08f), new Vector2(0f, -0.30f)
+            },
+            CutePixelKit.Hex("6F303B"),
+            -6);
+    }
+
+    private void CreateGothicGravestone(Transform parent, string name, Vector2 position, float scale, int sortingOrder)
+    {
+        GameObject stone = CreatePolygonObject(
+            name,
+            parent,
+            position,
+            new[]
+            {
+                new Vector2(-0.42f, -0.56f), new Vector2(-0.42f, 0.12f),
+                new Vector2(-0.30f, 0.50f), new Vector2(0f, 0.70f),
+                new Vector2(0.30f, 0.50f), new Vector2(0.42f, 0.12f),
+                new Vector2(0.42f, -0.56f)
+            },
+            CutePixelKit.Hex("25232B"),
+            sortingOrder);
+        stone.transform.localScale = Vector3.one * scale;
+        GameObject face = CreatePolygonObject(
+            name + " Sigil",
+            parent,
+            position + new Vector2(0f, 0.12f * scale),
+            new[]
+            {
+                new Vector2(-0.15f, -0.08f), new Vector2(0f, 0.24f),
+                new Vector2(0.15f, -0.08f), new Vector2(0f, -0.24f)
+            },
+            CutePixelKit.Hex("6D3B2D"),
+            sortingOrder + 1);
+        face.transform.localScale = Vector3.one * scale;
+        CreatePolygonObject(
+            name + " Ground Shadow",
+            parent,
+            position + new Vector2(0.08f, -0.62f * scale),
+            new[]
+            {
+                new Vector2(-0.52f, -0.08f), new Vector2(-0.18f, -0.18f),
+                new Vector2(0.58f, -0.05f), new Vector2(0.18f, 0.12f)
+            },
+            new Color(0.005f, 0.004f, 0.008f, 0.78f),
+            sortingOrder - 1);
+    }
+
+    private void CreateGothicBrazier(Transform parent, string name, Vector2 position, float scale, int sortingOrder)
+    {
+        CreatePolygonObject(
+            name + " Stand",
+            parent,
+            position + new Vector2(0f, -0.26f * scale),
+            new[]
+            {
+                new Vector2(-0.22f, -0.38f), new Vector2(0.22f, -0.38f),
+                new Vector2(0.12f, 0.34f), new Vector2(-0.12f, 0.34f)
+            },
+            CutePixelKit.Hex("2B2525"),
+            sortingOrder);
+        GameObject flame = CreatePolygonObject(
+            name + " Flame",
+            parent,
+            position + new Vector2(0f, 0.30f * scale),
+            new[]
+            {
+                new Vector2(-0.28f, -0.14f), new Vector2(-0.08f, 0.32f),
+                new Vector2(0f, 0.56f), new Vector2(0.15f, 0.25f),
+                new Vector2(0.28f, -0.14f), new Vector2(0f, -0.28f)
+            },
+            CutePixelKit.Hex("9E3345"),
+            sortingOrder + 2);
+        flame.transform.localScale = Vector3.one * scale;
+        if (lanternGlowSprite != null)
+        {
+            CutePixelKit.SpriteObject(
+                parent,
+                name + " Ash Glow",
+                lanternGlowSprite,
+                position + new Vector2(0f, 0.20f),
+                0.48f * scale,
+                sortingOrder - 1,
+                new Color(0.75f, 0.18f, 0.08f, 0.20f));
         }
     }
 
@@ -1178,7 +1413,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         moonGlowSprite = CreateRadialSprite(
             "Moon Volume Glow",
-            new Color(0.46f, 0.66f, 1f, 0.28f),
+            new Color(0.58f, 0.54f, 0.45f, 0.20f),
             48);
         CutePixelKit.SpriteObject(
             farDepthLayer,
@@ -1189,12 +1424,12 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             -44);
 
         lanternGlowSprite = CreateRadialSprite(
-            "Courier Lantern Glow",
-            new Color(1f, 0.65f, 0.30f, 0.30f),
+            "Ash Lantern Glow",
+            new Color(0.92f, 0.34f, 0.10f, 0.30f),
             48);
         playerLanternGlow = CutePixelKit.SpriteObject(
             midDepthLayer,
-            "Courier Lantern Bloom",
+            "Ash Lantern Bloom",
             lanternGlowSprite,
             PresentationSpawnPoint + new Vector2(0f, 0.32f),
             1.25f,
@@ -1294,18 +1529,18 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                 continue;
             }
 
-            if (objectName == "Night Courier")
+            if (objectName == "Lantern Exile")
             {
                 renderer.sprite = activeHeroSprite;
                 renderer.flipX = heroFacingLeft;
             }
-            else if (objectName == "Red Drone") renderer.sprite = slimeSprite;
-            else if (objectName == "Brute Drone") renderer.sprite = hornSprite;
-            else if (objectName == "Wool Sprite") renderer.sprite = woolSprite;
-            else if (objectName == "Lantern Moth") renderer.sprite = mothSprite;
-            else if (objectName == "Mushroom Thief") renderer.sprite = mushroomSprite;
-            else if (objectName == "Hedge Witch") renderer.sprite = witchSprite;
-            else if (objectName == "Mallow Warden") renderer.sprite = bossSprite;
+            else if (objectName == "Blood Wisp") renderer.sprite = slimeSprite;
+            else if (objectName == "Horned Revenant") renderer.sprite = hornSprite;
+            else if (objectName == "Grave Hound") renderer.sprite = woolSprite;
+            else if (objectName == "Raven Wraith") renderer.sprite = mothSprite;
+            else if (objectName == "Plague Shambler") renderer.sprite = mushroomSprite;
+            else if (objectName == "Blood Cultist") renderer.sprite = witchSprite;
+            else if (objectName == "Ashen Warden") renderer.sprite = bossSprite;
             else if (objectName == "Spark Bolt") renderer.sprite = sparkSprite;
             else if (objectName == "Cinder Bolt") renderer.sprite = emberSprite;
             else if (objectName == "Hearth Note") renderer.sprite = noteSprite;
@@ -1321,9 +1556,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             else if (objectName == "Boss Burst") renderer.sprite = bossBurstSprite;
             else if (objectName == "Charge Telegraph") renderer.sprite = telegraphSprite;
 
-            bool isActor = objectName == "Night Courier" || objectName == "Red Drone" || objectName == "Brute Drone" ||
-                           objectName == "Wool Sprite" || objectName == "Lantern Moth" || objectName == "Mushroom Thief" ||
-                           objectName == "Hedge Witch" || objectName == "Mallow Warden";
+            bool isActor = objectName == "Lantern Exile" || objectName == "Blood Wisp" || objectName == "Horned Revenant" ||
+                           objectName == "Grave Hound" || objectName == "Raven Wraith" || objectName == "Plague Shambler" ||
+                           objectName == "Blood Cultist" || objectName == "Ashen Warden";
             if (isActor)
             {
                 ApplyActorDepth(renderer);
@@ -1415,7 +1650,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
         switch (actorName)
         {
-            case "Night Courier":
+            case "Lantern Exile":
                 silhouettePoints = new[]
                 {
                     new Vector2(-0.38f, -0.48f), new Vector2(-0.55f, 0.04f),
@@ -1434,13 +1669,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(0f, -0.16f), new Vector2(-0.12f, 0f)
                 };
                 accentPosition = new Vector2(0.35f, 0.16f);
-                silhouetteColor = CutePixelKit.Hex("655389");
-                facetColor = CutePixelKit.MascotMint;
-                outlineColor = CutePixelKit.Hex("30243F");
+                silhouetteColor = CutePixelKit.Hex("252A35");
+                facetColor = CutePixelKit.Hex("B48A4B");
+                outlineColor = CutePixelKit.Hex("0D0D12");
                 break;
-            case "Brute Drone":
-            case "Mallow Warden":
-                silhouettePoints = actorName == "Mallow Warden"
+            case "Horned Revenant":
+            case "Ashen Warden":
+                silhouettePoints = actorName == "Ashen Warden"
                     ? new[]
                     {
                         new Vector2(-0.78f, -0.56f), new Vector2(-0.92f, 0.10f),
@@ -1455,7 +1690,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                         new Vector2(0.59f, 0.12f), new Vector2(0.40f, -0.44f),
                         new Vector2(0f, -0.60f)
                     };
-                facetPoints = actorName == "Mallow Warden"
+                facetPoints = actorName == "Ashen Warden"
                     ? new[]
                     {
                         new Vector2(-0.40f, 0.18f), new Vector2(0f, 0.70f),
@@ -1471,12 +1706,12 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(0f, 0.16f), new Vector2(0.13f, 0f),
                     new Vector2(0f, -0.16f), new Vector2(-0.13f, 0f)
                 };
-                accentPosition = actorName == "Mallow Warden" ? new Vector2(0f, 0.72f) : new Vector2(0.34f, 0.28f);
-                silhouetteColor = actorName == "Mallow Warden" ? CutePixelKit.Hex("5A3E70") : CutePixelKit.Hex("A96255");
-                facetColor = actorName == "Mallow Warden" ? CutePixelKit.MascotGold : CutePixelKit.MascotGold;
-                outlineColor = actorName == "Mallow Warden" ? CutePixelKit.Hex("2B203C") : CutePixelKit.MascotOutline;
+                accentPosition = actorName == "Ashen Warden" ? new Vector2(0f, 0.72f) : new Vector2(0.34f, 0.28f);
+                silhouetteColor = actorName == "Ashen Warden" ? CutePixelKit.Hex("25212D") : CutePixelKit.Hex("3A2B31");
+                facetColor = actorName == "Ashen Warden" ? CutePixelKit.Hex("A88754") : CutePixelKit.Hex("8F5E45");
+                outlineColor = actorName == "Ashen Warden" ? CutePixelKit.Hex("0B0B10") : CutePixelKit.Hex("191318");
                 break;
-            case "Lantern Moth":
+            case "Raven Wraith":
                 silhouettePoints = new[]
                 {
                     new Vector2(-0.56f, 0.18f), new Vector2(-0.30f, 0.50f),
@@ -1489,12 +1724,12 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(-0.16f, -0.26f), new Vector2(0f, 0.34f),
                     new Vector2(0.16f, -0.26f), new Vector2(0f, -0.42f)
                 };
-                silhouetteColor = CutePixelKit.MascotLilac;
-                facetColor = CutePixelKit.MascotGold;
-                outlineColor = CutePixelKit.Hex("49385F");
+                silhouetteColor = CutePixelKit.Hex("332744");
+                facetColor = CutePixelKit.Hex("A16D40");
+                outlineColor = CutePixelKit.Hex("120F1A");
                 winged = true;
                 break;
-            case "Hedge Witch":
+            case "Blood Cultist":
                 silhouettePoints = new[]
                 {
                     new Vector2(-0.45f, -0.40f), new Vector2(-0.55f, 0.16f),
@@ -1506,11 +1741,11 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(-0.30f, -0.20f), new Vector2(0f, 0.48f),
                     new Vector2(0.30f, -0.20f), new Vector2(0f, -0.38f)
                 };
-                silhouetteColor = CutePixelKit.MascotLilac;
-                facetColor = CutePixelKit.MascotPink;
-                outlineColor = CutePixelKit.Hex("4A385C");
+                silhouetteColor = CutePixelKit.Hex("28202F");
+                facetColor = CutePixelKit.Hex("9C3345");
+                outlineColor = CutePixelKit.Hex("0D0B12");
                 break;
-            case "Mushroom Thief":
+            case "Plague Shambler":
                 silhouettePoints = new[]
                 {
                     new Vector2(-0.50f, 0.02f), new Vector2(-0.34f, 0.40f),
@@ -1524,11 +1759,11 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(0.24f, -0.06f), new Vector2(0.14f, -0.40f),
                     new Vector2(-0.14f, -0.40f)
                 };
-                silhouetteColor = CutePixelKit.MascotBlush;
-                facetColor = CutePixelKit.MascotCream;
-                outlineColor = CutePixelKit.Hex("5B334A");
+                silhouetteColor = CutePixelKit.Hex("6B3C32");
+                facetColor = CutePixelKit.Hex("C3B58E");
+                outlineColor = CutePixelKit.Hex("171014");
                 break;
-            case "Wool Sprite":
+            case "Grave Hound":
                 silhouettePoints = new[]
                 {
                     new Vector2(-0.40f, -0.34f), new Vector2(-0.49f, 0.10f),
@@ -1541,9 +1776,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(-0.23f, 0.10f), new Vector2(0f, 0.34f),
                     new Vector2(0.25f, 0.08f), new Vector2(0f, -0.18f)
                 };
-                silhouetteColor = CutePixelKit.MascotMint;
-                facetColor = CutePixelKit.MascotCream;
-                outlineColor = CutePixelKit.Hex("315C5B");
+                silhouetteColor = CutePixelKit.Hex("344346");
+                facetColor = CutePixelKit.Hex("A7A17E");
+                outlineColor = CutePixelKit.Hex("10161A");
                 break;
             default:
                 silhouettePoints = new[]
@@ -1558,8 +1793,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
                     new Vector2(-0.22f, 0.10f), new Vector2(0f, 0.27f),
                     new Vector2(0.23f, 0.08f), new Vector2(0f, -0.15f)
                 };
-                silhouetteColor = CutePixelKit.MascotPink;
-                facetColor = CutePixelKit.MascotBlush;
+                silhouetteColor = CutePixelKit.Hex("6C2638");
+                facetColor = CutePixelKit.Hex("B74342");
+                outlineColor = CutePixelKit.Hex("140C12");
                 break;
         }
 
@@ -1586,7 +1822,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             -1);
         rig.Silhouette = CreatePolygonObject(actorName + " Polygon Silhouette", root.transform, Vector2.zero, silhouettePoints, silhouetteColor, 0);
         rig.Facet = CreatePolygonObject(actorName + " Polygon Facet", root.transform, Vector2.zero, facetPoints, facetColor, 1);
-        rig.Outline = CreatePolygonOutline(rig.Silhouette, silhouettePoints, outlineColor, actorName == "Mallow Warden" ? 0.045f : 0.032f, 2);
+        rig.Outline = CreatePolygonOutline(rig.Silhouette, silhouettePoints, outlineColor, actorName == "Ashen Warden" ? 0.045f : 0.032f, 2);
         if (accentPoints != null)
         {
             rig.Accent = CreatePolygonObject(actorName + " Polygon Accent", root.transform, accentPosition, accentPoints, CutePixelKit.MascotGold, 3);
@@ -1602,13 +1838,35 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             new Vector2(-0.045f, -0.06f), new Vector2(0f, 0.035f),
             new Vector2(0.045f, -0.06f), new Vector2(0f, -0.105f)
         };
-        float eyeX = actorName == "Mallow Warden" ? 0.24f : actorName == "Brute Drone" ? 0.16f : 0.105f;
-        float eyeY = actorName == "Mallow Warden" ? 0.22f : actorName == "Hedge Witch" ? 0.05f : 0.10f;
-        Color eyeColor = actorName == "Mallow Warden" ? CutePixelKit.MascotGold : outlineColor;
+        float eyeX = actorName == "Ashen Warden" ? 0.24f : actorName == "Horned Revenant" ? 0.16f : 0.105f;
+        float eyeY = actorName == "Ashen Warden" ? 0.22f : actorName == "Blood Cultist" ? 0.05f : 0.10f;
+        Color eyeColor = actorName == "Ashen Warden" ? CutePixelKit.Hex("E2A84F") : outlineColor;
         rig.Details.Add(CreatePolygonObject(actorName + " Polygon Eye L", root, new Vector2(-eyeX, eyeY), eye, eyeColor, 4));
         rig.Details.Add(CreatePolygonObject(actorName + " Polygon Eye R", root, new Vector2(eyeX, eyeY), eye, eyeColor, 4));
 
-        if (actorName == "Lantern Moth")
+        if (actorName == "Lantern Exile")
+        {
+            Vector2[] blade =
+            {
+                new Vector2(-0.035f, -0.48f), new Vector2(0.055f, -0.48f),
+                new Vector2(0.16f, 0.40f), new Vector2(0.02f, 0.52f)
+            };
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Relic Blade", root, new Vector2(0.46f, -0.02f), blade, CutePixelKit.Hex("C89245"), 4));
+        }
+        else if (actorName == "Horned Revenant" || actorName == "Ashen Warden")
+        {
+            Vector2[] horn =
+            {
+                new Vector2(-0.13f, -0.02f), new Vector2(0f, 0.34f),
+                new Vector2(0.13f, -0.02f), new Vector2(0.035f, 0.04f)
+            };
+            float hornX = actorName == "Ashen Warden" ? 0.48f : 0.31f;
+            float hornY = actorName == "Ashen Warden" ? 0.58f : 0.43f;
+            Color hornColor = actorName == "Ashen Warden" ? CutePixelKit.Hex("B48A4B") : CutePixelKit.Hex("8F7861");
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Horn L", root, new Vector2(-hornX, hornY), horn, hornColor, 4));
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Horn R", root, new Vector2(hornX, hornY), horn, hornColor, 4));
+        }
+        else if (actorName == "Raven Wraith")
         {
             Vector2[] antenna =
             {
@@ -1617,14 +1875,29 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             };
             rig.Details.Add(CreatePolygonObject(actorName + " Polygon Antenna", root, new Vector2(0f, 0.27f), antenna, outlineColor, 4));
         }
-        else if (actorName == "Mushroom Thief")
+        else if (actorName == "Blood Cultist")
+        {
+            Vector2[] staff =
+            {
+                new Vector2(-0.045f, -0.62f), new Vector2(0.045f, -0.62f),
+                new Vector2(0.045f, 0.52f), new Vector2(-0.045f, 0.52f)
+            };
+            Vector2[] staffHead =
+            {
+                new Vector2(-0.16f, -0.04f), new Vector2(0f, 0.22f),
+                new Vector2(0.16f, -0.04f), new Vector2(0f, -0.20f)
+            };
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Staff", root, new Vector2(0.48f, -0.02f), staff, CutePixelKit.Hex("4C352C"), 4));
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Staff Relic", root, new Vector2(0.48f, 0.54f), staffHead, CutePixelKit.Hex("9E3345"), 5));
+        }
+        else if (actorName == "Plague Shambler")
         {
             Vector2[] stem =
             {
                 new Vector2(-0.10f, -0.23f), new Vector2(0.10f, -0.23f),
                 new Vector2(0.07f, 0.04f), new Vector2(-0.08f, 0.04f)
             };
-            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Stem", root, new Vector2(0f, -0.08f), stem, CutePixelKit.MascotCream, 4));
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Stem", root, new Vector2(0f, -0.08f), stem, CutePixelKit.Hex("C3B58E"), 4));
         }
     }
 
@@ -1729,13 +2002,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         stylesBuilt = true;
         Font font = CutePixelKit.FriendlyFont;
 
-        titleStyle = MakeStyle(font, 30, CutePixelKit.Hex("5D3D58"), FontStyle.Bold, TextAnchor.MiddleCenter, true);
-        headingStyle = MakeStyle(font, 17, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleLeft, false);
-        bodyStyle = MakeStyle(font, 14, CutePixelKit.Hex("644656"), FontStyle.Normal, TextAnchor.UpperLeft, true);
+        titleStyle = MakeStyle(font, 30, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, true);
+        headingStyle = MakeStyle(font, 17, CutePixelKit.Hex("E8DCC2"), FontStyle.Bold, TextAnchor.MiddleLeft, false);
+        bodyStyle = MakeStyle(font, 14, CutePixelKit.Hex("B9AC9A"), FontStyle.Normal, TextAnchor.UpperLeft, true);
         tinyStyle = MakeStyle(font, 11, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleLeft, false);
         centeredStyle = MakeStyle(font, 13, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleCenter, true);
-        cardTitleStyle = MakeStyle(font, 18, CutePixelKit.MascotOutline, FontStyle.Bold, TextAnchor.UpperLeft, true);
-        cardBodyStyle = MakeStyle(font, 13, CutePixelKit.Hex("6D5260"), FontStyle.Normal, TextAnchor.UpperLeft, true);
+        cardTitleStyle = MakeStyle(font, 18, CutePixelKit.Hex("D8C6A1"), FontStyle.Bold, TextAnchor.UpperLeft, true);
+        cardBodyStyle = MakeStyle(font, 13, CutePixelKit.Hex("B2A49A"), FontStyle.Normal, TextAnchor.UpperLeft, true);
 
         parchmentPanelStyle = MakePanelStyle(parchmentPanel, 10);
         darkPanelStyle = MakePanelStyle(darkPanel, 8);
@@ -1778,10 +2051,10 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         return new GUIStyle
         {
-            normal = { background = normal, textColor = CutePixelKit.Hex("4B3042") },
-            hover = { background = hover, textColor = CutePixelKit.Hex("4B3042") },
-            active = { background = active, textColor = CutePixelKit.Hex("4B3042") },
-            focused = { background = hover, textColor = CutePixelKit.Hex("4B3042") },
+            normal = { background = normal, textColor = CutePixelKit.Hex("D6C6A7") },
+            hover = { background = hover, textColor = CutePixelKit.Hex("F2E9D0") },
+            active = { background = active, textColor = CutePixelKit.Hex("F2E9D0") },
+            focused = { background = hover, textColor = CutePixelKit.Hex("F2E9D0") },
             font = font,
             fontSize = 13,
             fontStyle = FontStyle.Bold,
@@ -1806,6 +2079,8 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         float offsetX = (Screen.width - ReferenceWidth * scale) * 0.5f;
         float offsetY = (Screen.height - ReferenceHeight * scale) * 0.5f;
         Matrix4x4 previous = GUI.matrix;
+        Color previousGuiColor = GUI.color;
+        GUI.color = Color.white;
         GUI.matrix = Matrix4x4.TRS(new Vector3(offsetX, offsetY, 0f), Quaternion.identity, new Vector3(scale, scale, 1f));
 
         DrawCompactHud();
@@ -1813,9 +2088,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         string mode = GetMode();
         if (mode == "Menu") DrawMenu();
         else if (mode == "LevelUp") DrawLevelUp();
-        else if (mode == "Paused") DrawStateCard("A little rest", "The meadow is waiting.", "Press P to continue");
-        else if (mode == "Won") DrawStateCard("Dawn found you", "You carried the light through the whole night.", "Press R for another walk");
-        else if (mode == "Lost") DrawStateCard("The lantern went quiet", "Every small run leaves a story behind.", "Press R to try again");
+        else if (mode == "Paused") DrawStateCard("THE LANTERN RESTS", "The dead are waiting beyond the gate.", "PRESS P TO CONTINUE");
+        else if (mode == "Won") DrawStateCard("DAWN BREAKS", "You survived the Ashen Night.", "PRESS R TO HUNT AGAIN");
+        else if (mode == "Lost") DrawStateCard("THE LANTERN WENT DARK", "The abyss claimed this run.", "PRESS R TO RISE AGAIN");
 
         float toastTimer = GetFloat("toastTimer");
         if (toastTimer > 0f)
@@ -1825,6 +2100,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         }
 
         GUI.matrix = previous;
+        GUI.color = previousGuiColor;
     }
 
     private void DrawCompactHud()
@@ -1841,17 +2117,17 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
         DrawPanel(new Rect(18f, 16f, 252f, 72f), darkPanelStyle);
         DrawSprite(portraitSprite, new Rect(27f, 22f, 54f, 58f));
-        GUI.Label(new Rect(88f, 22f, 170f, 22f), "Meadow Courier", headingStyle);
+        GUI.Label(new Rect(88f, 22f, 170f, 22f), "LANTERN EXILE", headingStyle);
         DrawBar(new Rect(88f, 48f, 158f, 12f), health / maxHealth, healthFill);
-        GUI.Label(new Rect(88f, 62f, 170f, 18f), Mathf.CeilToInt(health) + " / " + Mathf.CeilToInt(maxHealth) + " hearts", tinyStyle);
+        GUI.Label(new Rect(88f, 62f, 170f, 18f), Mathf.CeilToInt(health) + " / " + Mathf.CeilToInt(maxHealth) + " life", tinyStyle);
 
         DrawPanel(new Rect(405f, 16f, 150f, 46f), timerPanelStyle);
         GUI.Label(new Rect(417f, 21f, 126f, 28f), CutePixelKit.FormatTime(elapsed), centeredStyle);
-        GUI.Label(new Rect(417f, 43f, 126f, 14f), "until dawn", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(417f, 43f, 126f, 14f), "to dawn", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleCenter, false));
 
         DrawPanel(new Rect(708f, 16f, 234f, 46f), darkPanelStyle);
-        GUI.Label(new Rect(720f, 22f, 210f, 18f), "Lv. " + level + "   •   " + kills + " little foes", tinyStyle);
-        GUI.Label(new Rect(720f, 42f, 210f, 14f), chests + " story chests found", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleLeft, false));
+        GUI.Label(new Rect(720f, 22f, 210f, 18f), "Lv. " + level + "   •   " + kills + " demons slain", tinyStyle);
+        GUI.Label(new Rect(720f, 42f, 210f, 14f), chests + " relic chests opened", MakeStyle(CutePixelKit.FriendlyFont, 9, CutePixelKit.Paper, FontStyle.Normal, TextAnchor.MiddleLeft, false));
 
         if (GetBool("bossActive"))
         {
@@ -1870,7 +2146,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         DrawLoadout();
 
         DrawBar(new Rect(18f, 516f, 924f, 9f), xp / (float)xpToNext, xpFill);
-        GUI.Label(new Rect(18f, 492f, 300f, 20f), "Moon dew  " + xp + " / " + xpToNext, tinyStyle);
+        GUI.Label(new Rect(18f, 492f, 300f, 20f), "SOUL SHARDS  " + xp + " / " + xpToNext, tinyStyle);
         GUI.Label(new Rect(720f, 492f, 222f, 20f), "Pulse  " + Mathf.RoundToInt(pulse) + "%", MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleRight, false));
         DrawBar(new Rect(822f, 483f, 120f, 7f), pulse / 100f, pulseFill);
     }
@@ -1912,18 +2188,18 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
         DrawPanel(new Rect(190f, 112f, 580f, 350f), parchmentPanelStyle);
-        GUI.Label(new Rect(235f, 142f, 490f, 54f), "Nightfall Meadow", titleStyle);
-        GUI.Label(new Rect(250f, 201f, 460f, 56f), "A tiny lantern. A soft field.\nSomething small is coming closer.", bodyStyle);
-        GUI.Label(new Rect(270f, 276f, 420f, 56f), "Move with WASD or arrow keys.\nYour little friend helps by itself.", MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("644656"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
-        GUI.Label(new Rect(270f, 344f, 420f, 25f), "Space sends a little comfort pulse", MakeStyle(CutePixelKit.FriendlyFont, 12, CutePixelKit.Hex("8B6572"), FontStyle.Normal, TextAnchor.MiddleCenter, false));
-        GUI.Label(new Rect(270f, 389f, 420f, 32f), "Press Enter to visit the meadow", MakeStyle(CutePixelKit.FriendlyFont, 15, CutePixelKit.Hex("5D3D58"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(235f, 142f, 490f, 54f), "ASHEN NIGHTFALL", titleStyle);
+        GUI.Label(new Rect(250f, 201f, 460f, 56f), "The black lantern burns.\nSomething ancient is waking.", bodyStyle);
+        GUI.Label(new Rect(270f, 276f, 420f, 56f), "WASD / ARROWS  MOVE THE EXILE.\nYour weapon fires automatically.", MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("D1C4A7"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
+        GUI.Label(new Rect(270f, 344f, 420f, 25f), "SPACE  RELEASE THE ABYSSAL PULSE", MakeStyle(CutePixelKit.FriendlyFont, 12, CutePixelKit.Hex("B67A68"), FontStyle.Normal, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(270f, 389f, 420f, 32f), "PRESS ENTER TO ENTER THE ASHEN GATE", MakeStyle(CutePixelKit.FriendlyFont, 15, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
     }
 
     private void DrawLevelUp()
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
-        GUI.Label(new Rect(180f, 74f, 600f, 46f), "Choose a tiny blessing", MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleCenter, false));
-        GUI.Label(new Rect(220f, 113f, 520f, 24f), "The night can wait while you decide", centeredStyle);
+        GUI.Label(new Rect(180f, 74f, 600f, 46f), "CHOOSE A RELIC", MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(220f, 113f, 520f, 24f), "THE DEAD WILL WAIT. CHOOSE YOUR POWER.", centeredStyle);
 
         IList choices = GetList("upgradeChoices");
         for (int i = 0; i < 3; i++)
@@ -1935,28 +2211,29 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             string description = Humanize(ReadChoice(choice, "Description"));
 
             if (GUI.Button(card, GUIContent.none, StyleForChoice(tag))) InvokeUpgrade(i);
-            GUI.Label(new Rect(card.x + 20f, card.y + 18f, card.width - 40f, 20f), (i + 1) + "   " + Humanize(tag), MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.Hex("A0614D"), FontStyle.Bold, TextAnchor.MiddleLeft, false));
+            GUI.Label(new Rect(card.x + 20f, card.y + 18f, card.width - 40f, 20f), (i + 1) + "   " + Humanize(tag), MakeStyle(CutePixelKit.FriendlyFont, 10, CutePixelKit.Hex("C89245"), FontStyle.Bold, TextAnchor.MiddleLeft, false));
             DrawSprite(IconForChoice(title, tag), new Rect(card.x + 91f, card.y + 50f, 68f, 68f));
             GUI.Label(new Rect(card.x + 20f, card.y + 132f, card.width - 40f, 60f), title, cardTitleStyle);
             GUI.Label(new Rect(card.x + 20f, card.y + 202f, card.width - 40f, 74f), description, cardBodyStyle);
-            GUI.Label(new Rect(card.x + 20f, card.y + 278f, card.width - 40f, 20f), "Choose " + (i + 1), MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Hex("815044"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+            GUI.Label(new Rect(card.x + 20f, card.y + 278f, card.width - 40f, 20f), "TAKE RELIC " + (i + 1), MakeStyle(CutePixelKit.FriendlyFont, 11, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
         }
     }
 
     private Sprite IconForChoice(string title, string tag)
     {
         string key = (title + " " + tag).ToLowerInvariant();
-        if (key.Contains("hearth") || key.Contains("notes")) return notesIcon;
-        if (key.Contains("berry") || key.Contains("basket")) return berryIcon;
-        if (key.Contains("needle") || key.Contains("sewing")) return needleIcon;
-        if (key.Contains("firefly") || key.Contains("jar")) return fireflyIcon;
-        if (key.Contains("armor") || key.Contains("recovery") || key.Contains("tea")) return heartIcon;
-        if (key.Contains("luck") || key.Contains("thread")) return magnetIcon;
-        if (key.Contains("wide") || key.Contains("area")) return pulseIcon;
-        if (key.Contains("ring") || key.Contains("ember")) return ringIcon;
+        if (key.Contains("choir") || key.Contains("notes")) return notesIcon;
+        if (key.Contains("sigil")) return wandIcon;
+        if (key.Contains("vial") || key.Contains("blood")) return berryIcon;
+        if (key.Contains("needle") || key.Contains("bone")) return needleIcon;
+        if (key.Contains("lantern") || key.Contains("soul")) return fireflyIcon;
+        if (key.Contains("armor") || key.Contains("recovery") || key.Contains("plating") || key.Contains("sanguine")) return heartIcon;
+        if (key.Contains("luck") || key.Contains("draw")) return magnetIcon;
+        if (key.Contains("reach") || key.Contains("area")) return pulseIcon;
+        if (key.Contains("ring") || key.Contains("infernal")) return ringIcon;
         if (key.Contains("gravity") || key.Contains("magnet")) return magnetIcon;
-        if (key.Contains("wind") || key.Contains("vital")) return heartIcon;
-        if (key.Contains("feet") || key.Contains("haste")) return bootIcon;
+        if (key.Contains("wind") || key.Contains("vital") || key.Contains("wraith")) return heartIcon;
+        if (key.Contains("step") || key.Contains("haste")) return bootIcon;
         return wandIcon;
     }
 
@@ -1972,9 +2249,9 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
         DrawPanel(new Rect(238f, 175f, 484f, 230f), parchmentPanelStyle);
-        GUI.Label(new Rect(270f, 205f, 420f, 46f), title, MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Hex("4C3045"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
-        GUI.Label(new Rect(285f, 267f, 390f, 54f), message, MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("5E4647"), FontStyle.Normal, TextAnchor.MiddleCenter, true));
-        GUI.Label(new Rect(285f, 342f, 390f, 25f), prompt, MakeStyle(CutePixelKit.FriendlyFont, 13, CutePixelKit.Hex("7D5147"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(270f, 205f, 420f, 46f), title, MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Hex("D6B783"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(285f, 267f, 390f, 54f), message, MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("B9AC9A"), FontStyle.Normal, TextAnchor.MiddleCenter, true));
+        GUI.Label(new Rect(285f, 342f, 390f, 25f), prompt, MakeStyle(CutePixelKit.FriendlyFont, 13, CutePixelKit.Hex("C89245"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
     }
 
     private void DrawBar(Rect rect, float amount, Texture2D fill)
@@ -2064,8 +2341,8 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     {
         if (string.IsNullOrEmpty(text)) return string.Empty;
         string value = text.Replace("//", " · ").Replace("_", " ").Trim();
-        value = value.Replace("INSTALLED", "learned").Replace("CHEST OPENED", "Story chest opened");
-        value = value.Replace("WEAPON", "wand craft").Replace("PASSIVE", "small blessing").Replace("EVOLUTION", "rare tale");
+        value = value.Replace("INSTALLED", "attuned").Replace("CHEST OPENED", "Relic chest opened");
+        value = value.Replace("WEAPON", "relic").Replace("PASSIVE", "dark boon").Replace("EVOLUTION", "forbidden evolution");
         value = value.ToLowerInvariant();
         return char.ToUpperInvariant(value[0]) + value.Substring(1);
     }
