@@ -21,6 +21,8 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     // Match the authored 480x270 / 16:9 composition so the HUD scales cleanly
     // at 960x540, 1280x720 and 1920x1080 without editor letterboxing.
     private const float ReferenceHeight = 540f;
+    private const float WorldHalfWidth = 40f;
+    private const float WorldHalfHeight = 28f;
 
     private Component simulation;
     private MethodInfo simulationUpdate;
@@ -75,6 +77,21 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
     private Sprite moonGlowSprite;
     private Sprite lanternGlowSprite;
     private readonly Dictionary<GameObject, Vector3> actorBaseScales = new Dictionary<GameObject, Vector3>();
+    private readonly Dictionary<GameObject, PolygonActorRig> polygonActorRigs = new Dictionary<GameObject, PolygonActorRig>();
+    private readonly Dictionary<GameObject, Vector3> polygonLastPositions = new Dictionary<GameObject, Vector3>();
+
+    private sealed class PolygonActorRig
+    {
+        public GameObject Root;
+        public GameObject DepthPlate;
+        public GameObject Silhouette;
+        public GameObject Facet;
+        public GameObject Accent;
+        public readonly List<GameObject> Details = new List<GameObject>();
+        public LineRenderer Outline;
+        public float Phase;
+        public bool Winged;
+    }
 
     private Texture2D authoredBackground;
     private Texture2D authoredSpriteSheet;
@@ -176,6 +193,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         }
 
         UpdateTwoPointFiveSpace();
+        UpdatePolygonActorMotion();
         skinRefresh -= Time.unscaledDeltaTime;
         if (skinRefresh <= 0f)
         {
@@ -694,17 +712,11 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         {
             authoredBackground.filterMode = FilterMode.Point;
             authoredBackground.wrapMode = TextureWrapMode.Clamp;
-            Sprite backgroundSprite = Sprite.Create(
-                authoredBackground,
-                new Rect(0f, 0f, authoredBackground.width, authoredBackground.height),
-                new Vector2(0.5f, 0.5f),
-                32f,
-                0,
-                SpriteMeshType.FullRect);
-            float cameraHeight = 5.2f * 2f;
-            float authoredHeight = authoredBackground.height / 32f;
-            float backgroundScale = cameraHeight / authoredHeight * 1.05f;
-            CutePixelKit.SpriteObject(farDepthLayer, "Moonlit Clearing", backgroundSprite, Vector2.zero, backgroundScale, -45);
+            // Keep the authored texture available for the UI pipeline, but use
+            // a generated low-poly diorama for the actual playfield. A textured
+            // rectangle behind mesh characters would read as pixel art, not as
+            // the requested polygon style.
+            BuildPolygonBackdrop();
             Build2PointFiveProps();
             Build2PointFiveLighting();
             return;
@@ -753,6 +765,119 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         Build2PointFiveLighting();
     }
 
+    private void BuildPolygonBackdrop()
+    {
+        CreatePolygonObject(
+            "Low Poly Night Backdrop",
+            farDepthLayer,
+            Vector2.zero,
+            new[]
+            {
+                new Vector2(-WorldHalfWidth - 2f, -WorldHalfHeight - 2f),
+                new Vector2(WorldHalfWidth + 2f, -WorldHalfHeight - 2f),
+                new Vector2(WorldHalfWidth + 2f, WorldHalfHeight + 2f),
+                new Vector2(-WorldHalfWidth - 2f, WorldHalfHeight + 2f)
+            },
+            CutePixelKit.Hex("17263D"),
+            -50);
+        CreatePolygonObject(
+            "Low Poly Sky Facet Blue",
+            farDepthLayer,
+            new Vector2(-3.2f, 2.25f),
+            new[]
+            {
+                new Vector2(-5.2f, -1.3f), new Vector2(0.8f, -1.8f),
+                new Vector2(3.0f, 1.7f), new Vector2(-1.0f, 2.4f)
+            },
+            new Color(0.16f, 0.24f, 0.40f, 0.92f),
+            -49);
+        CreatePolygonObject(
+            "Low Poly Sky Facet Plum",
+            farDepthLayer,
+            new Vector2(3.55f, 2.45f),
+            new[]
+            {
+                new Vector2(-2.6f, -1.4f), new Vector2(3.6f, -1.8f),
+                new Vector2(4.4f, 1.8f), new Vector2(0.2f, 2.2f)
+            },
+            new Color(0.25f, 0.18f, 0.35f, 0.88f),
+            -48);
+        CreatePolygonObject(
+            "Low Poly Meadow Plateau",
+            farDepthLayer,
+            new Vector2(0f, -1.15f),
+            new[]
+            {
+                new Vector2(-WorldHalfWidth, -WorldHalfHeight), new Vector2(-28f, -18f),
+                new Vector2(-14f, -21f), new Vector2(2f, -17f),
+                new Vector2(18f, -20f), new Vector2(WorldHalfWidth, -16f),
+                new Vector2(WorldHalfWidth, -WorldHalfHeight), new Vector2(-WorldHalfWidth, -WorldHalfHeight)
+            },
+            new Color(0.12f, 0.32f, 0.30f, 1f),
+            -40);
+        CreatePolygonObject(
+            "Low Poly Meadow Highlight",
+            farDepthLayer,
+            new Vector2(-0.5f, -2.05f),
+            new[]
+            {
+                new Vector2(-6.8f, -1.05f), new Vector2(-2.2f, -0.28f),
+                new Vector2(1.7f, -0.82f), new Vector2(5.8f, -0.18f),
+                new Vector2(7.0f, -0.92f), new Vector2(2.2f, -1.72f),
+                new Vector2(-2.4f, -1.45f)
+            },
+            new Color(0.20f, 0.42f, 0.37f, 0.76f),
+            -39);
+        CreatePolygonObject(
+            "Low Poly Distant Ridge",
+            farDepthLayer,
+            new Vector2(0f, 1.3f),
+            new[]
+            {
+                new Vector2(-WorldHalfWidth, -0.28f), new Vector2(-34f, 0.85f),
+                new Vector2(-25f, 0.35f), new Vector2(-17f, 1.15f),
+                new Vector2(-8f, 0.42f), new Vector2(2f, 1.05f),
+                new Vector2(12f, 0.30f), new Vector2(22f, 1.2f),
+                new Vector2(30f, 0.45f), new Vector2(WorldHalfWidth, 1.0f),
+                new Vector2(WorldHalfWidth, -0.72f), new Vector2(-WorldHalfWidth, -0.72f)
+            },
+            new Color(0.08f, 0.23f, 0.28f, 0.84f),
+            -38);
+
+        BuildLargeMeadowTiles();
+    }
+
+    private void BuildLargeMeadowTiles()
+    {
+        int tileIndex = 0;
+        for (int x = -36; x <= 36; x += 12)
+        {
+            for (int y = -24; y <= 24; y += 10)
+            {
+                float skew = Mathf.Sin((x + y) * 0.23f) * 0.9f;
+                Color tileColor;
+                int palette = Mathf.Abs((x / 12) + (y / 10)) % 4;
+                if (palette == 0) tileColor = new Color(0.11f, 0.29f, 0.30f, 0.96f);
+                else if (palette == 1) tileColor = new Color(0.13f, 0.33f, 0.31f, 0.96f);
+                else if (palette == 2) tileColor = new Color(0.12f, 0.30f, 0.34f, 0.96f);
+                else tileColor = new Color(0.15f, 0.28f, 0.34f, 0.96f);
+
+                CreatePolygonObject(
+                    "Meadow Tile " + tileIndex++,
+                    farDepthLayer,
+                    new Vector2(x + skew, y),
+                    new[]
+                    {
+                        new Vector2(-7.0f, -5.2f), new Vector2(2.2f, -5.5f),
+                        new Vector2(7.1f, -1.7f), new Vector2(4.6f, 4.6f),
+                        new Vector2(-2.4f, 5.2f), new Vector2(-7.2f, 1.4f)
+                    },
+                    tileColor,
+                    -41);
+            }
+        }
+    }
+
     private Transform CreateDepthLayer(Transform parent, string name)
     {
         GameObject layer = new GameObject(name);
@@ -762,32 +887,14 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
     private void Build2PointFiveProps()
     {
-        Dictionary<char, Color> treePalette = new Dictionary<char, Color>
-        {
-            { 'O', CutePixelKit.Hex("1B3A35") },
-            { 'L', CutePixelKit.Hex("2E6F55") },
-            { 'M', CutePixelKit.Hex("63B36F") },
-            { 'B', CutePixelKit.Hex("6D493A") }
-        };
-        Sprite treeSprite = CutePixelKit.CreateSprite(
-            "2.5D Canopy Tree",
-            new[]
-            {
-                "....OO...OO....", "..OOOOOOOOOO...", ".OOOLLLLOOOO...",
-                "OOOLLLLLLLOOO..", "OOOOOLLLLOOOO..", ".OOOOOOOOOOO...",
-                "...OOOBBOO.....", "....OBB.......", "..............."
-            },
-            treePalette,
-            16f);
-
         Vector2[] midTrees =
         {
             new Vector2(-6.45f, 2.65f), new Vector2(6.55f, 2.55f),
             new Vector2(-6.8f, -0.75f), new Vector2(6.85f, -0.65f)
         };
-        foreach (Vector2 point in midTrees)
+        for (int i = 0; i < midTrees.Length; i++)
         {
-            CutePixelKit.SpriteObject(midDepthLayer, "Midground Canopy", treeSprite, point, 0.92f, -12);
+            CreatePolygonTree(midDepthLayer, "Midground Polygon Canopy " + i, midTrees[i], 0.92f, -12);
         }
 
         Vector2[] nearTrees =
@@ -795,28 +902,21 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             new Vector2(-6.95f, -3.45f), new Vector2(6.85f, -3.55f),
             new Vector2(-6.85f, -2.15f), new Vector2(6.9f, -2.05f)
         };
-        foreach (Vector2 point in nearTrees)
+        for (int i = 0; i < nearTrees.Length; i++)
         {
-            CutePixelKit.ShadowObject(nearDepthLayer, "Near Canopy Shadow", point + new Vector2(0.08f, -0.28f), new Vector2(1.15f, 0.38f), 98);
-            CutePixelKit.SpriteObject(nearDepthLayer, "Near Canopy", treeSprite, point, 1.22f, 120);
+            CreatePolygonTree(nearDepthLayer, "Near Polygon Canopy " + i, nearTrees[i], 1.22f, 120);
         }
 
-        Sprite grassSprite = CutePixelKit.CreateSprite(
-            "2.5D Meadow Grass",
-            new[] { "........", "..L.....", ".LLL..L.", "LLLLLLLL", "...BB..." },
-            new Dictionary<char, Color>
-            {
-                { 'L', CutePixelKit.Hex("75C77D") }, { 'B', CutePixelKit.Hex("487B50") }
-            },
-            16f);
+        BuildWorldPolygonFoliage();
+
         Vector2[] foregroundGrass =
         {
             new Vector2(-3.1f, -3.65f), new Vector2(-1.75f, -3.8f),
             new Vector2(1.9f, -3.78f), new Vector2(3.45f, -3.62f)
         };
-        foreach (Vector2 point in foregroundGrass)
+        for (int i = 0; i < foregroundGrass.Length; i++)
         {
-            CutePixelKit.SpriteObject(nearDepthLayer, "Foreground Grass", grassSprite, point, 0.72f, 126);
+            CreatePolygonGrassTuft(nearDepthLayer, "Foreground Polygon Grass " + i, foregroundGrass[i], 0.72f, 126);
         }
 
         CutePixelKit.RectObject(
@@ -826,6 +926,252 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             new Vector2(16f, 0.34f),
             new Color(0.07f, 0.13f, 0.16f, 0.32f),
             130);
+
+        BuildPolygonMeadowFacets();
+    }
+
+    private void CreatePolygonTree(Transform parent, string name, Vector2 position, float scale, int sortingOrder)
+    {
+        CreatePolygonObject(
+            name + " Trunk",
+            parent,
+            position + new Vector2(0f, -0.42f * scale),
+            new[]
+            {
+                new Vector2(-0.12f, -0.42f), new Vector2(0.14f, -0.42f),
+                new Vector2(0.11f, 0.42f), new Vector2(-0.10f, 0.42f)
+            },
+            CutePixelKit.Hex("765042"),
+            sortingOrder);
+        GameObject canopy = CreatePolygonObject(
+            name + " Canopy",
+            parent,
+            position + new Vector2(0f, 0.25f * scale),
+            new[]
+            {
+                new Vector2(-0.74f, -0.10f), new Vector2(-0.48f, 0.62f),
+                new Vector2(-0.08f, 0.98f), new Vector2(0.50f, 0.62f),
+                new Vector2(0.78f, -0.08f), new Vector2(0.30f, -0.48f),
+                new Vector2(-0.34f, -0.46f)
+            },
+            CutePixelKit.Hex("2D6A5B"),
+            sortingOrder + 1);
+        canopy.transform.localScale = Vector3.one * scale;
+        GameObject canopyFacet = CreatePolygonObject(
+            name + " Canopy Facet",
+            parent,
+            position + new Vector2(-0.16f * scale, 0.43f * scale),
+            new[]
+            {
+                new Vector2(-0.42f, -0.12f), new Vector2(-0.07f, 0.64f),
+                new Vector2(0.42f, -0.05f), new Vector2(0.08f, -0.30f)
+            },
+            CutePixelKit.Hex("63B36F"),
+            sortingOrder + 2);
+        canopyFacet.transform.localScale = Vector3.one * scale;
+        CreatePolygonObject(
+            name + " Ground Shadow",
+            parent,
+            position + new Vector2(0.08f, -0.82f * scale),
+            new[]
+            {
+                new Vector2(-0.62f, -0.10f), new Vector2(-0.18f, -0.22f),
+                new Vector2(0.70f, -0.06f), new Vector2(0.18f, 0.12f)
+            },
+            new Color(0.035f, 0.05f, 0.10f, 0.55f),
+            sortingOrder - 1);
+    }
+
+    private void CreatePolygonGrassTuft(Transform parent, string name, Vector2 position, float scale, int sortingOrder)
+    {
+        GameObject grass = CreatePolygonObject(
+            name,
+            parent,
+            position,
+            new[]
+            {
+                new Vector2(-0.34f, -0.30f), new Vector2(-0.08f, 0.52f),
+                new Vector2(0f, -0.05f), new Vector2(0.24f, 0.66f),
+                new Vector2(0.34f, -0.30f)
+            },
+            CutePixelKit.Hex("72C47C"),
+            sortingOrder);
+        grass.transform.localScale = Vector3.one * scale;
+    }
+
+    private void BuildWorldPolygonFoliage()
+    {
+        int treeIndex = 0;
+        for (int x = -36; x <= 36; x += 9)
+        {
+            float topY = 9.5f + Mathf.Sin(x * 0.31f) * 1.8f;
+            float bottomY = -11.0f + Mathf.Cos(x * 0.27f) * 1.7f;
+            CreatePolygonTree(
+                midDepthLayer,
+                "World Border Tree " + treeIndex++,
+                new Vector2(x + Mathf.Sin(x * 0.17f) * 1.2f, topY),
+                0.72f + Mathf.Abs(Mathf.Sin(x * 0.13f)) * 0.18f,
+                -13);
+            CreatePolygonTree(
+                midDepthLayer,
+                "World Border Tree " + treeIndex++,
+                new Vector2(x + Mathf.Cos(x * 0.19f) * 1.0f, bottomY),
+                0.74f + Mathf.Abs(Mathf.Cos(x * 0.11f)) * 0.16f,
+                -13);
+        }
+
+        for (int y = -9; y <= 9; y += 9)
+        {
+            CreatePolygonTree(
+                midDepthLayer,
+                "World Side Tree " + treeIndex++,
+                new Vector2(-23.5f + Mathf.Sin(y * 0.4f) * 1.2f, y),
+                0.82f,
+                -13);
+            CreatePolygonTree(
+                midDepthLayer,
+                "World Side Tree " + treeIndex++,
+                new Vector2(23.5f + Mathf.Cos(y * 0.4f) * 1.2f, y),
+                0.84f,
+                -13);
+        }
+    }
+
+    private void BuildPolygonMeadowFacets()
+    {
+        // A few large, low-contrast facets sell the 2.5D ground plane without
+        // covering the authored background or turning the arena into a flat UI.
+        CreatePolygonObject(
+            "Moonlit Ground Facet Left",
+            midDepthLayer,
+            new Vector2(-4.9f, -2.55f),
+            new[]
+            {
+                new Vector2(-2.15f, -0.28f), new Vector2(-0.72f, -0.62f),
+                new Vector2(1.15f, -0.24f), new Vector2(0.32f, 0.16f),
+                new Vector2(-1.18f, 0.34f)
+            },
+            new Color(0.20f, 0.35f, 0.36f, 0.34f),
+            -22);
+        CreatePolygonObject(
+            "Moonlit Ground Facet Right",
+            midDepthLayer,
+            new Vector2(4.85f, -2.65f),
+            new[]
+            {
+                new Vector2(-1.18f, -0.30f), new Vector2(0.28f, -0.62f),
+                new Vector2(2.10f, -0.12f), new Vector2(1.16f, 0.32f),
+                new Vector2(-0.30f, 0.12f)
+            },
+            new Color(0.25f, 0.29f, 0.42f, 0.30f),
+            -21);
+        CreatePolygonObject(
+            "Moonlit Ground Facet Center",
+            midDepthLayer,
+            new Vector2(0.2f, -3.18f),
+            new[]
+            {
+                new Vector2(-2.42f, -0.12f), new Vector2(-0.58f, -0.46f),
+                new Vector2(1.95f, -0.10f), new Vector2(0.58f, 0.42f),
+                new Vector2(-1.18f, 0.30f)
+            },
+            new Color(0.16f, 0.30f, 0.32f, 0.28f),
+            -20);
+
+        Vector2[] canopyPoints =
+        {
+            new Vector2(-6.95f, 2.75f), new Vector2(6.95f, 2.75f),
+            new Vector2(-6.95f, -0.85f), new Vector2(6.95f, -0.75f)
+        };
+        for (int i = 0; i < canopyPoints.Length; i++)
+        {
+            float side = canopyPoints[i].x < 0f ? -1f : 1f;
+            CreatePolygonObject(
+                "Faceted Canopy " + i,
+                midDepthLayer,
+                canopyPoints[i],
+                new[]
+                {
+                    new Vector2(0f, -0.85f), new Vector2(side * 0.68f, -0.20f),
+                    new Vector2(side * 0.48f, 0.72f), new Vector2(0f, 1.10f),
+                    new Vector2(-side * 0.46f, 0.56f), new Vector2(-side * 0.70f, -0.18f)
+                },
+                i % 2 == 0
+                    ? new Color(0.10f, 0.26f, 0.30f, 0.58f)
+                    : new Color(0.18f, 0.24f, 0.37f, 0.54f),
+                -14);
+        }
+    }
+
+    private GameObject CreatePolygonObject(
+        string objectName,
+        Transform parent,
+        Vector2 position,
+        Vector2[] points,
+        Color fill,
+        int sortingOrder)
+    {
+        GameObject polygon = new GameObject(objectName);
+        if (parent != null) polygon.transform.SetParent(parent, false);
+        polygon.transform.localPosition = new Vector3(position.x, position.y, 0f);
+
+        Mesh mesh = new Mesh { name = objectName + " Mesh" };
+        Vector3[] vertices = new Vector3[points.Length + 1];
+        vertices[0] = Vector3.zero;
+        for (int i = 0; i < points.Length; i++)
+        {
+            vertices[i + 1] = new Vector3(points[i].x, points[i].y, 0f);
+        }
+        int[] triangles = new int[points.Length * 3];
+        for (int i = 0; i < points.Length; i++)
+        {
+            int triangle = i * 3;
+            triangles[triangle] = 0;
+            triangles[triangle + 1] = i + 1;
+            triangles[triangle + 2] = (i + 1) % points.Length + 1;
+        }
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateBounds();
+
+        MeshFilter filter = polygon.AddComponent<MeshFilter>();
+        filter.sharedMesh = mesh;
+        MeshRenderer meshRenderer = polygon.AddComponent<MeshRenderer>();
+        meshRenderer.sortingOrder = sortingOrder;
+        meshRenderer.receiveShadows = false;
+        Shader shader = Shader.Find("Sprites/Default");
+        if (shader == null) shader = Shader.Find("Unlit/Color");
+        if (shader != null)
+        {
+            Material material = new Material(shader) { name = objectName + " Material" };
+            material.color = fill;
+            meshRenderer.sharedMaterial = material;
+        }
+        return polygon;
+    }
+
+    private LineRenderer CreatePolygonOutline(GameObject polygon, Vector2[] points, Color color, float width, int sortingOrder)
+    {
+        GameObject outlineObject = new GameObject(polygon.name + " Edge");
+        outlineObject.transform.SetParent(polygon.transform, false);
+        LineRenderer outline = outlineObject.AddComponent<LineRenderer>();
+        outline.useWorldSpace = false;
+        outline.loop = true;
+        outline.positionCount = points.Length;
+        outline.widthMultiplier = width;
+        outline.numCornerVertices = 0;
+        outline.numCapVertices = 0;
+        outline.startColor = color;
+        outline.endColor = color;
+        outline.sortingOrder = sortingOrder;
+        Shader shader = Shader.Find("Sprites/Default");
+        if (shader == null) shader = Shader.Find("Unlit/Color");
+        if (shader != null) outline.material = new Material(shader) { color = color };
+        for (int i = 0; i < points.Length; i++)
+        {
+            outline.SetPosition(i, new Vector3(points[i].x, points[i].y, 0f));
+        }
+        return outline;
     }
 
     private void Build2PointFiveLighting()
@@ -899,8 +1245,16 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         if (playerObject == null) return;
 
         Vector3 playerPosition = playerObject.transform.position;
-        float horizontal = Mathf.Clamp(playerPosition.x / 7.35f, -1f, 1f);
-        float vertical = Mathf.Clamp(playerPosition.y / 4.05f, -1f, 1f);
+        Camera sceneCamera = Camera.main;
+        if (sceneCamera != null)
+        {
+            Vector3 cameraTarget = new Vector3(playerPosition.x, playerPosition.y, sceneCamera.transform.position.z);
+            float cameraBlend = 1f - Mathf.Exp(-Time.unscaledDeltaTime * 12f);
+            sceneCamera.transform.position = Vector3.Lerp(sceneCamera.transform.position, cameraTarget, cameraBlend);
+        }
+
+        float horizontal = Mathf.Clamp(playerPosition.x / WorldHalfWidth, -1f, 1f);
+        float vertical = Mathf.Clamp(playerPosition.y / WorldHalfHeight, -1f, 1f);
         Vector3 parallax = new Vector3(-horizontal * 0.18f, -vertical * 0.08f, 0f);
         float blend = 1f - Mathf.Exp(-Time.unscaledDeltaTime * 8f);
         if (farDepthLayer != null) farDepthLayer.localPosition = Vector3.Lerp(farDepthLayer.localPosition, parallax * 0.24f, blend);
@@ -923,6 +1277,14 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         {
             if (renderer == null) continue;
             string objectName = renderer.gameObject.name;
+
+            if (objectName.IndexOf("Shadow", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                // Legacy pixel shadows are replaced by the polygon grounding
+                // shadows created for the actor rigs below.
+                renderer.enabled = false;
+                continue;
+            }
 
             if (hideLegacyField &&
                 (objectName.StartsWith("Nightfall Arena") || objectName.StartsWith("Arena Surface") ||
@@ -959,11 +1321,17 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             else if (objectName == "Boss Burst") renderer.sprite = bossBurstSprite;
             else if (objectName == "Charge Telegraph") renderer.sprite = telegraphSprite;
 
-            if (objectName == "Night Courier" || objectName == "Red Drone" || objectName == "Brute Drone" ||
-                objectName == "Wool Sprite" || objectName == "Lantern Moth" || objectName == "Mushroom Thief" ||
-                objectName == "Hedge Witch" || objectName == "Mallow Warden")
+            bool isActor = objectName == "Night Courier" || objectName == "Red Drone" || objectName == "Brute Drone" ||
+                           objectName == "Wool Sprite" || objectName == "Lantern Moth" || objectName == "Mushroom Thief" ||
+                           objectName == "Hedge Witch" || objectName == "Mallow Warden";
+            if (isActor)
             {
                 ApplyActorDepth(renderer);
+                ApplyPolygonActorSkin(renderer);
+                // The scene actors are now mesh-built polygon characters. The
+                // original pixel sprites stay available for the HUD portrait,
+                // but are not rendered in the playfield.
+                renderer.enabled = false;
             }
         }
     }
@@ -989,8 +1357,318 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
 
         shadow.transform.position = renderer.transform.position + new Vector3(0f, -0.22f, 0f);
         shadow.transform.localScale = new Vector3(1.18f * depthScale, 0.56f * depthScale, 1f);
-        SpriteRenderer shadowRenderer = shadow.GetComponent<SpriteRenderer>();
+        Renderer shadowRenderer = shadow.GetComponent<Renderer>();
         if (shadowRenderer != null) shadowRenderer.sortingOrder = renderer.sortingOrder - 1;
+    }
+
+    private void ApplyPolygonActorSkin(SpriteRenderer renderer)
+    {
+        GameObject actorObject = renderer.gameObject;
+        PolygonActorRig rig;
+        if (!polygonActorRigs.TryGetValue(actorObject, out rig) || rig == null)
+        {
+            rig = BuildPolygonActorRig(actorObject.name, actorObject.transform);
+            polygonActorRigs[actorObject] = rig;
+            polygonLastPositions[actorObject] = actorObject.transform.position;
+        }
+
+        int baseOrder = renderer.sortingOrder;
+        if (rig.Silhouette != null)
+        {
+            MeshRenderer silhouette = rig.Silhouette.GetComponent<MeshRenderer>();
+            if (silhouette != null) silhouette.sortingOrder = baseOrder - 3;
+        }
+        if (rig.Facet != null)
+        {
+            MeshRenderer facet = rig.Facet.GetComponent<MeshRenderer>();
+            if (facet != null) facet.sortingOrder = baseOrder - 2;
+        }
+        if (rig.Accent != null)
+        {
+            MeshRenderer accent = rig.Accent.GetComponent<MeshRenderer>();
+            if (accent != null) accent.sortingOrder = baseOrder - 1;
+        }
+        if (rig.Outline != null) rig.Outline.sortingOrder = baseOrder - 2;
+        if (rig.DepthPlate != null)
+        {
+            MeshRenderer depthPlate = rig.DepthPlate.GetComponent<MeshRenderer>();
+            if (depthPlate != null) depthPlate.sortingOrder = baseOrder - 4;
+        }
+        for (int i = 0; i < rig.Details.Count; i++)
+        {
+            if (rig.Details[i] == null) continue;
+            MeshRenderer detail = rig.Details[i].GetComponent<MeshRenderer>();
+            if (detail != null) detail.sortingOrder = baseOrder - 1;
+        }
+    }
+
+    private PolygonActorRig BuildPolygonActorRig(string actorName, Transform actorTransform)
+    {
+        Vector2[] silhouettePoints;
+        Vector2[] facetPoints;
+        Vector2[] accentPoints = null;
+        Vector2 accentPosition = Vector2.zero;
+        Color silhouetteColor;
+        Color facetColor;
+        Color outlineColor = CutePixelKit.MascotOutline;
+        bool winged = false;
+
+        switch (actorName)
+        {
+            case "Night Courier":
+                silhouettePoints = new[]
+                {
+                    new Vector2(-0.38f, -0.48f), new Vector2(-0.55f, 0.04f),
+                    new Vector2(-0.28f, 0.47f), new Vector2(0.25f, 0.45f),
+                    new Vector2(0.55f, 0.05f), new Vector2(0.36f, -0.46f),
+                    new Vector2(0f, -0.59f)
+                };
+                facetPoints = new[]
+                {
+                    new Vector2(-0.23f, -0.34f), new Vector2(0.03f, 0.34f),
+                    new Vector2(0.30f, -0.25f)
+                };
+                accentPoints = new[]
+                {
+                    new Vector2(0f, 0.16f), new Vector2(0.12f, 0f),
+                    new Vector2(0f, -0.16f), new Vector2(-0.12f, 0f)
+                };
+                accentPosition = new Vector2(0.35f, 0.16f);
+                silhouetteColor = CutePixelKit.Hex("655389");
+                facetColor = CutePixelKit.MascotMint;
+                outlineColor = CutePixelKit.Hex("30243F");
+                break;
+            case "Brute Drone":
+            case "Mallow Warden":
+                silhouettePoints = actorName == "Mallow Warden"
+                    ? new[]
+                    {
+                        new Vector2(-0.78f, -0.56f), new Vector2(-0.92f, 0.10f),
+                        new Vector2(-0.42f, 0.70f), new Vector2(0f, 0.88f),
+                        new Vector2(0.43f, 0.70f), new Vector2(0.92f, 0.10f),
+                        new Vector2(0.76f, -0.58f), new Vector2(0f, -0.80f)
+                    }
+                    : new[]
+                    {
+                        new Vector2(-0.50f, -0.34f), new Vector2(-0.57f, 0.16f),
+                        new Vector2(-0.25f, 0.56f), new Vector2(0.25f, 0.56f),
+                        new Vector2(0.59f, 0.12f), new Vector2(0.40f, -0.44f),
+                        new Vector2(0f, -0.60f)
+                    };
+                facetPoints = actorName == "Mallow Warden"
+                    ? new[]
+                    {
+                        new Vector2(-0.40f, 0.18f), new Vector2(0f, 0.70f),
+                        new Vector2(0.44f, 0.18f), new Vector2(0f, -0.18f)
+                    }
+                    : new[]
+                    {
+                        new Vector2(-0.28f, 0.22f), new Vector2(0f, 0.48f),
+                        new Vector2(0.30f, 0.12f), new Vector2(0f, -0.16f)
+                    };
+                accentPoints = new[]
+                {
+                    new Vector2(0f, 0.16f), new Vector2(0.13f, 0f),
+                    new Vector2(0f, -0.16f), new Vector2(-0.13f, 0f)
+                };
+                accentPosition = actorName == "Mallow Warden" ? new Vector2(0f, 0.72f) : new Vector2(0.34f, 0.28f);
+                silhouetteColor = actorName == "Mallow Warden" ? CutePixelKit.Hex("5A3E70") : CutePixelKit.Hex("A96255");
+                facetColor = actorName == "Mallow Warden" ? CutePixelKit.MascotGold : CutePixelKit.MascotGold;
+                outlineColor = actorName == "Mallow Warden" ? CutePixelKit.Hex("2B203C") : CutePixelKit.MascotOutline;
+                break;
+            case "Lantern Moth":
+                silhouettePoints = new[]
+                {
+                    new Vector2(-0.56f, 0.18f), new Vector2(-0.30f, 0.50f),
+                    new Vector2(0f, 0.18f), new Vector2(0.30f, 0.50f),
+                    new Vector2(0.56f, 0.18f), new Vector2(0.24f, -0.12f),
+                    new Vector2(0f, -0.47f), new Vector2(-0.24f, -0.12f)
+                };
+                facetPoints = new[]
+                {
+                    new Vector2(-0.16f, -0.26f), new Vector2(0f, 0.34f),
+                    new Vector2(0.16f, -0.26f), new Vector2(0f, -0.42f)
+                };
+                silhouetteColor = CutePixelKit.MascotLilac;
+                facetColor = CutePixelKit.MascotGold;
+                outlineColor = CutePixelKit.Hex("49385F");
+                winged = true;
+                break;
+            case "Hedge Witch":
+                silhouettePoints = new[]
+                {
+                    new Vector2(-0.45f, -0.40f), new Vector2(-0.55f, 0.16f),
+                    new Vector2(0f, 0.68f), new Vector2(0.55f, 0.16f),
+                    new Vector2(0.43f, -0.42f), new Vector2(0f, -0.56f)
+                };
+                facetPoints = new[]
+                {
+                    new Vector2(-0.30f, -0.20f), new Vector2(0f, 0.48f),
+                    new Vector2(0.30f, -0.20f), new Vector2(0f, -0.38f)
+                };
+                silhouetteColor = CutePixelKit.MascotLilac;
+                facetColor = CutePixelKit.MascotPink;
+                outlineColor = CutePixelKit.Hex("4A385C");
+                break;
+            case "Mushroom Thief":
+                silhouettePoints = new[]
+                {
+                    new Vector2(-0.50f, 0.02f), new Vector2(-0.34f, 0.40f),
+                    new Vector2(0f, 0.53f), new Vector2(0.36f, 0.40f),
+                    new Vector2(0.52f, 0.02f), new Vector2(0.26f, -0.08f),
+                    new Vector2(-0.28f, -0.08f)
+                };
+                facetPoints = new[]
+                {
+                    new Vector2(-0.22f, -0.06f), new Vector2(0f, 0.30f),
+                    new Vector2(0.24f, -0.06f), new Vector2(0.14f, -0.40f),
+                    new Vector2(-0.14f, -0.40f)
+                };
+                silhouetteColor = CutePixelKit.MascotBlush;
+                facetColor = CutePixelKit.MascotCream;
+                outlineColor = CutePixelKit.Hex("5B334A");
+                break;
+            case "Wool Sprite":
+                silhouettePoints = new[]
+                {
+                    new Vector2(-0.40f, -0.34f), new Vector2(-0.49f, 0.10f),
+                    new Vector2(-0.22f, 0.43f), new Vector2(0.20f, 0.46f),
+                    new Vector2(0.48f, 0.12f), new Vector2(0.34f, -0.35f),
+                    new Vector2(0f, -0.52f)
+                };
+                facetPoints = new[]
+                {
+                    new Vector2(-0.23f, 0.10f), new Vector2(0f, 0.34f),
+                    new Vector2(0.25f, 0.08f), new Vector2(0f, -0.18f)
+                };
+                silhouetteColor = CutePixelKit.MascotMint;
+                facetColor = CutePixelKit.MascotCream;
+                outlineColor = CutePixelKit.Hex("315C5B");
+                break;
+            default:
+                silhouettePoints = new[]
+                {
+                    new Vector2(-0.35f, -0.28f), new Vector2(-0.42f, 0.10f),
+                    new Vector2(-0.18f, 0.35f), new Vector2(0.20f, 0.35f),
+                    new Vector2(0.42f, 0.10f), new Vector2(0.32f, -0.30f),
+                    new Vector2(0f, -0.44f)
+                };
+                facetPoints = new[]
+                {
+                    new Vector2(-0.22f, 0.10f), new Vector2(0f, 0.27f),
+                    new Vector2(0.23f, 0.08f), new Vector2(0f, -0.15f)
+                };
+                silhouetteColor = CutePixelKit.MascotPink;
+                facetColor = CutePixelKit.MascotBlush;
+                break;
+        }
+
+        GameObject root = new GameObject(actorName + " Polygon Rig");
+        root.transform.SetParent(actorTransform, false);
+        root.transform.localPosition = new Vector3(0f, 0.02f, 0.14f);
+        PolygonActorRig rig = new PolygonActorRig
+        {
+            Root = root,
+            Phase = Mathf.Abs(actorName.GetHashCode() % 1000) * 0.01f,
+            Winged = winged
+        };
+        Color depthColor = new Color(
+            silhouetteColor.r * 0.52f,
+            silhouetteColor.g * 0.52f,
+            silhouetteColor.b * 0.62f,
+            1f);
+        rig.DepthPlate = CreatePolygonObject(
+            actorName + " Polygon Depth Plate",
+            root.transform,
+            new Vector2(0.085f, -0.105f),
+            silhouettePoints,
+            depthColor,
+            -1);
+        rig.Silhouette = CreatePolygonObject(actorName + " Polygon Silhouette", root.transform, Vector2.zero, silhouettePoints, silhouetteColor, 0);
+        rig.Facet = CreatePolygonObject(actorName + " Polygon Facet", root.transform, Vector2.zero, facetPoints, facetColor, 1);
+        rig.Outline = CreatePolygonOutline(rig.Silhouette, silhouettePoints, outlineColor, actorName == "Mallow Warden" ? 0.045f : 0.032f, 2);
+        if (accentPoints != null)
+        {
+            rig.Accent = CreatePolygonObject(actorName + " Polygon Accent", root.transform, accentPosition, accentPoints, CutePixelKit.MascotGold, 3);
+        }
+        AddPolygonFaceDetails(actorName, rig, root.transform, outlineColor);
+        return rig;
+    }
+
+    private void AddPolygonFaceDetails(string actorName, PolygonActorRig rig, Transform root, Color outlineColor)
+    {
+        Vector2[] eye =
+        {
+            new Vector2(-0.045f, -0.06f), new Vector2(0f, 0.035f),
+            new Vector2(0.045f, -0.06f), new Vector2(0f, -0.105f)
+        };
+        float eyeX = actorName == "Mallow Warden" ? 0.24f : actorName == "Brute Drone" ? 0.16f : 0.105f;
+        float eyeY = actorName == "Mallow Warden" ? 0.22f : actorName == "Hedge Witch" ? 0.05f : 0.10f;
+        Color eyeColor = actorName == "Mallow Warden" ? CutePixelKit.MascotGold : outlineColor;
+        rig.Details.Add(CreatePolygonObject(actorName + " Polygon Eye L", root, new Vector2(-eyeX, eyeY), eye, eyeColor, 4));
+        rig.Details.Add(CreatePolygonObject(actorName + " Polygon Eye R", root, new Vector2(eyeX, eyeY), eye, eyeColor, 4));
+
+        if (actorName == "Lantern Moth")
+        {
+            Vector2[] antenna =
+            {
+                new Vector2(-0.025f, -0.08f), new Vector2(0f, 0.38f),
+                new Vector2(0.025f, -0.08f)
+            };
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Antenna", root, new Vector2(0f, 0.27f), antenna, outlineColor, 4));
+        }
+        else if (actorName == "Mushroom Thief")
+        {
+            Vector2[] stem =
+            {
+                new Vector2(-0.10f, -0.23f), new Vector2(0.10f, -0.23f),
+                new Vector2(0.07f, 0.04f), new Vector2(-0.08f, 0.04f)
+            };
+            rig.Details.Add(CreatePolygonObject(actorName + " Polygon Stem", root, new Vector2(0f, -0.08f), stem, CutePixelKit.MascotCream, 4));
+        }
+    }
+
+    private void UpdatePolygonActorMotion()
+    {
+        if (polygonActorRigs.Count == 0) return;
+        float dt = Mathf.Max(0.001f, Time.unscaledDeltaTime);
+        float now = Time.unscaledTime;
+        foreach (KeyValuePair<GameObject, PolygonActorRig> pair in polygonActorRigs)
+        {
+            GameObject actorObject = pair.Key;
+            PolygonActorRig rig = pair.Value;
+            if (actorObject == null || rig == null || rig.Root == null) continue;
+
+            Vector3 currentPosition = actorObject.transform.position;
+            Vector3 lastPosition;
+            if (!polygonLastPositions.TryGetValue(actorObject, out lastPosition)) lastPosition = currentPosition;
+            Vector3 delta = currentPosition - lastPosition;
+            polygonLastPositions[actorObject] = currentPosition;
+            float speed = delta.magnitude / dt;
+            float motion = Mathf.Clamp01(speed / 3.8f);
+            float wave = Mathf.Sin(now * (4.2f + motion * 3.8f) + rig.Phase);
+
+            rig.Root.transform.localPosition = new Vector3(0f, 0.02f + wave * (0.012f + motion * 0.045f), 0.14f);
+            float lean = Mathf.Clamp(delta.x / dt * 5.5f, -13f, 13f);
+            float yaw = Mathf.Sin(now * 1.35f + rig.Phase) * (rig.Winged ? 10f : 4f);
+            rig.Root.transform.localRotation = Quaternion.Euler(yaw, 0f, lean + wave * (1.5f + motion * 4f));
+            rig.Root.transform.localScale = new Vector3(1f + motion * 0.055f, 1f - motion * 0.045f, 1f);
+
+            if (rig.Facet != null)
+            {
+                rig.Facet.transform.localRotation = Quaternion.Euler(0f, 0f, wave * (2f + motion * 10f));
+            }
+            if (rig.Accent != null)
+            {
+                float accentPulse = 1f + Mathf.Sin(now * 5.5f + rig.Phase * 1.7f) * (0.06f + motion * 0.08f);
+                rig.Accent.transform.localScale = Vector3.one * accentPulse;
+            }
+            if (rig.Winged && rig.Silhouette != null)
+            {
+                float wingBeat = 1f + Mathf.Sin(now * 8.5f + rig.Phase) * 0.12f;
+                rig.Silhouette.transform.localScale = new Vector3(wingBeat, 1f, 1f);
+            }
+        }
     }
 
     private GameObject GetOrCreateActorShadow(GameObject actorObject, Transform parent)
@@ -998,14 +1676,18 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         GameObject shadow;
         if (actorShadowObjects.TryGetValue(actorObject, out shadow) && shadow != null) return shadow;
 
-        shadow = CutePixelKit.SpriteObject(
+        shadow = CreatePolygonObject(
+            actorObject.name + " Polygon Ground Shadow",
             parent,
-            actorObject.name + " Ground Shadow",
-            actorShadowSprite,
             actorObject.transform.position + new Vector3(0f, -0.22f, 0f),
-            1f,
-            0,
-            Color.white);
+            new[]
+            {
+                new Vector2(-0.66f, 0f), new Vector2(-0.34f, 0.13f),
+                new Vector2(0.34f, 0.13f), new Vector2(0.66f, 0f),
+                new Vector2(0.28f, -0.13f), new Vector2(-0.32f, -0.13f)
+            },
+            new Color(0.035f, 0.025f, 0.07f, 0.58f),
+            0);
         actorShadowObjects[actorObject] = shadow;
         return shadow;
     }

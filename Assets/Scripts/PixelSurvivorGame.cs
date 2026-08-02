@@ -73,6 +73,8 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         public int AbilityPhase;
         public Vector2 ChargeTarget;
         public Vector2 FormationOffset;
+        public float StrafeSign;
+        public float MotionSeed;
     }
 
     private sealed class Projectile
@@ -151,10 +153,13 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
     private const int TargetLevelTime = 180;
     private const int TargetSignals = 6;
-    private const float ArenaLeft = -7.35f;
-    private const float ArenaRight = 7.35f;
-    private const float ArenaBottom = -4.05f;
-    private const float ArenaTop = 4.05f;
+    // Vampire Survivors-style world: the camera only shows a small slice of
+    // this space while the courier can keep travelling and enemies stream in
+    // from outside the current view.
+    private const float ArenaLeft = -38f;
+    private const float ArenaRight = 38f;
+    private const float ArenaBottom = -26f;
+    private const float ArenaTop = 26f;
 
     private readonly List<Enemy> enemies = new List<Enemy>();
     private readonly List<Projectile> projectiles = new List<Projectile>();
@@ -732,11 +737,12 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         Vector2 position = suggestedPosition;
         if (suggestedPosition == Vector2.zero)
         {
-            int edge = Random.Range(0, 4);
-            if (edge == 0) position = new Vector2(ArenaLeft - 0.9f, Random.Range(ArenaBottom, ArenaTop));
-            else if (edge == 1) position = new Vector2(ArenaRight + 0.9f, Random.Range(ArenaBottom, ArenaTop));
-            else if (edge == 2) position = new Vector2(Random.Range(ArenaLeft, ArenaRight), ArenaTop + 0.9f);
-            else position = new Vector2(Random.Range(ArenaLeft, ArenaRight), ArenaBottom - 0.9f);
+            Vector2 playerPosition = player != null ? (Vector2)player.transform.position : spawnPoint;
+            float angle = Random.Range(0f, Mathf.PI * 2f);
+            float distance = Random.Range(10.5f, 13.5f);
+            position = playerPosition + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
+            position.x = Mathf.Clamp(position.x, ArenaLeft + 0.8f, ArenaRight - 0.8f);
+            position.y = Mathf.Clamp(position.y, ArenaBottom + 0.8f, ArenaTop - 0.8f);
         }
 
         EnemyKind kind = ChooseEnemyKind();
@@ -796,7 +802,9 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             ShotTimer = Random.Range(1.4f, 2.8f),
             MovePhase = Random.Range(0f, Mathf.PI * 2f),
             OrbitAngle = Random.Range(0f, Mathf.PI * 2f),
-            FormationOffset = Vector2.zero
+            FormationOffset = Vector2.zero,
+            StrafeSign = Random.value < 0.5f ? -1f : 1f,
+            MotionSeed = Random.Range(0f, Mathf.PI * 2f)
         };
         enemy.FormationOffset = Random.insideUnitCircle * 0.8f;
         enemy.Object = CreateSpriteObject(EnemyObjectName(kind), EnemySprite(kind), position, scale, 9);
@@ -858,7 +866,11 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         bossMaxHealth = 520f + elapsed * 2.2f;
         bossHealth = bossMaxHealth;
         bossWarningTimer = 4.2f;
-        Vector2 position = new Vector2(ArenaRight + 1.15f, Random.Range(ArenaBottom + 1.2f, ArenaTop - 1.2f));
+        Vector2 playerPosition = player != null ? (Vector2)player.transform.position : spawnPoint;
+        float bossAngle = Random.Range(0f, Mathf.PI * 2f);
+        Vector2 position = playerPosition + new Vector2(Mathf.Cos(bossAngle), Mathf.Sin(bossAngle)) * 12.5f;
+        position.x = Mathf.Clamp(position.x, ArenaLeft + 1.2f, ArenaRight - 1.2f);
+        position.y = Mathf.Clamp(position.y, ArenaBottom + 1.2f, ArenaTop - 1.2f);
         Enemy boss = new Enemy
         {
             Id = nextEnemyId++,
@@ -871,7 +883,9 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             ShotTimer = 2.0f,
             MovePhase = 0.0f,
             OrbitAngle = 0.0f,
-            FormationOffset = Vector2.zero
+            FormationOffset = Vector2.zero,
+            StrafeSign = 1f,
+            MotionSeed = 0.6f
         };
         boss.Object = CreateSpriteObject("Mallow Warden", bossSpriteFallback(), position, 1.42f, 10);
         boss.Shadow = CreateShadow("Mallow Warden Ground Shadow", position + new Vector2(0.08f, -0.20f), 1.42f, 8);
@@ -900,6 +914,8 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             Vector2 desiredDirection = direction;
             float desiredSpeed = enemy.Speed;
             float acceleration = 5.5f;
+            Vector2 tangent = new Vector2(-direction.y, direction.x) * enemy.StrafeSign;
+            float motionWave = Mathf.Sin(enemy.MovePhase * 1.65f + enemy.MotionSeed + elapsed * 0.55f);
 
             enemy.AbilityTimer -= dt;
             enemy.ShotTimer -= dt;
@@ -907,11 +923,21 @@ public sealed class PixelSurvivorGame : MonoBehaviour
 
             switch (enemy.Kind)
             {
+                case EnemyKind.Drone:
+                    // The basic mote now zig-zags through the arena instead of
+                    // locking onto the courier on a straight line.
+                    desiredDirection = (direction * 0.93f + tangent * motionWave * 0.42f).normalized;
+                    desiredSpeed = enemy.Speed * (1.02f + Mathf.Abs(motionWave) * 0.12f);
+                    break;
                 case EnemyKind.Wool:
-                    Vector2 woolTarget = playerPosition + enemy.FormationOffset * (0.75f + Mathf.Sin(elapsed * 1.4f + enemy.Id) * 0.18f);
+                    float woolOrbit = enemy.MovePhase * 0.72f + enemy.MotionSeed;
+                    Vector2 rotatingFormation = new Vector2(Mathf.Cos(woolOrbit), Mathf.Sin(woolOrbit * 1.17f)) * 0.48f;
+                    Vector2 woolTarget = playerPosition + (enemy.FormationOffset + rotatingFormation) * (0.75f + Mathf.Sin(elapsed * 1.4f + enemy.Id) * 0.18f);
                     Vector2 woolToTarget = woolTarget - enemyPosition;
-                    desiredDirection = woolToTarget.sqrMagnitude > 0.001f ? woolToTarget.normalized : direction;
-                    desiredSpeed = enemy.Speed * 0.92f;
+                    desiredDirection = woolToTarget.sqrMagnitude > 0.001f
+                        ? (woolToTarget.normalized + tangent * motionWave * 0.32f).normalized
+                        : direction;
+                    desiredSpeed = enemy.Speed * (0.92f + Mathf.Abs(motionWave) * 0.20f);
                     break;
                 case EnemyKind.Moth:
                     if (enemy.AbilityPhase == 0 && enemy.AbilityTimer <= 0f)
@@ -944,20 +970,41 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                     }
                     else
                     {
-                        Vector2 tangent = new Vector2(-direction.y, direction.x);
                         desiredDirection = (direction * 0.45f + tangent * Mathf.Sin(elapsed * 2.8f + enemy.Id) * 0.85f).normalized;
+                        desiredSpeed = enemy.Speed * (0.95f + Mathf.Abs(motionWave) * 0.30f);
                     }
                     break;
                 case EnemyKind.Mushroom:
-                    Vector2 wobble = new Vector2(-direction.y, direction.x) * Mathf.Sin(elapsed * 4.4f + enemy.MovePhase) * 0.88f;
-                    desiredDirection = (direction + wobble).normalized;
-                    desiredSpeed = enemy.Speed * (0.94f + Mathf.Abs(Mathf.Sin(elapsed * 2.1f + enemy.Id)) * 0.18f);
+                    if (enemy.AbilityPhase == 0 && enemy.AbilityTimer <= 0f)
+                    {
+                        enemy.AbilityPhase = 3;
+                        enemy.AbilityTimer = 0.30f;
+                        SpawnEffect("Charge Telegraph", enemyPosition, telegraphSprite, 0.78f, new Color(0.65f, 1f, 0.78f, 0.62f), 0.32f);
+                    }
+                    if (enemy.AbilityPhase == 3)
+                    {
+                        desiredDirection = (direction + tangent * 0.35f).normalized;
+                        desiredSpeed = enemy.Speed * 2.85f;
+                        acceleration = 11f;
+                        if (enemy.AbilityTimer <= 0f)
+                        {
+                            enemy.AbilityPhase = 0;
+                            enemy.AbilityTimer = Random.Range(2.1f, 4.0f);
+                        }
+                    }
+                    else
+                    {
+                        Vector2 wobble = tangent * Mathf.Sin(elapsed * 4.4f + enemy.MovePhase) * 0.88f;
+                        desiredDirection = (direction + wobble).normalized;
+                        desiredSpeed = enemy.Speed * (0.94f + Mathf.Abs(Mathf.Sin(elapsed * 2.1f + enemy.Id)) * 0.24f);
+                    }
                     break;
                 case EnemyKind.Witch:
-                    if (distance > 4.25f) desiredDirection = direction;
-                    else if (distance < 2.75f) desiredDirection = -direction;
-                    else desiredDirection = new Vector2(-direction.y, direction.x) * Mathf.Sign(Mathf.Sin(enemy.Id * 1.7f + elapsed));
-                    desiredSpeed = enemy.Speed;
+                    float rangeError = distance - 3.45f;
+                    float rangeCorrection = Mathf.Clamp(rangeError * 0.75f, -0.92f, 0.92f);
+                    float witchStrafe = 0.62f + Mathf.Sin(enemy.MovePhase * 1.35f + enemy.Id) * 0.24f;
+                    desiredDirection = (direction * rangeCorrection + tangent * witchStrafe).normalized;
+                    desiredSpeed = enemy.Speed * (1.0f + Mathf.Abs(Mathf.Sin(enemy.MovePhase * 1.2f)) * 0.28f);
                     if (enemy.ShotTimer <= 0f)
                     {
                         FireEnemyProjectile(enemy, direction, false);
@@ -994,11 +1041,23 @@ public sealed class PixelSurvivorGame : MonoBehaviour
                             enemy.AbilityTimer = Random.Range(2.6f, 4.2f);
                         }
                     }
+                    else
+                    {
+                        desiredDirection = (direction * 0.86f + tangent * (0.24f + motionWave * 0.16f)).normalized;
+                        desiredSpeed = enemy.Speed * (0.86f + Mathf.Abs(motionWave) * 0.18f);
+                    }
                     break;
                 case EnemyKind.Boss:
-                    Vector2 tangentBoss = new Vector2(-direction.y, direction.x);
-                    desiredDirection = (direction * 0.32f + tangentBoss * (0.72f + Mathf.Sin(elapsed * 1.2f) * 0.18f)).normalized;
-                    desiredSpeed = enemy.Speed + Mathf.Sin(elapsed * 1.5f) * 0.12f;
+                    float bossOrbit = enemy.MovePhase * 0.82f + enemy.MotionSeed;
+                    Vector2 bossFigureEight = playerPosition + new Vector2(
+                        Mathf.Cos(bossOrbit) * 3.0f,
+                        Mathf.Sin(bossOrbit * 2f) * 1.75f);
+                    Vector2 bossToTarget = bossFigureEight - enemyPosition;
+                    desiredDirection = bossToTarget.sqrMagnitude > 0.001f
+                        ? bossToTarget.normalized
+                        : (direction * 0.30f + tangent * 0.76f).normalized;
+                    desiredSpeed = enemy.Speed * (1.0f + Mathf.Sin(enemy.MovePhase * 1.7f) * 0.24f);
+                    acceleration = 6.5f;
                     if (enemy.ShotTimer <= 0f)
                     {
                         SpawnBossPattern(enemy);
@@ -1015,10 +1074,17 @@ public sealed class PixelSurvivorGame : MonoBehaviour
             clampedPosition.y = Mathf.Clamp(clampedPosition.y, ArenaBottom - 1.1f, ArenaTop + 1.1f);
             enemy.Object.transform.position = clampedPosition;
             SyncShadow(enemy.Object, enemy.Shadow, new Vector2(0.08f, -0.16f));
-            float rotation = enemy.Kind == EnemyKind.Brute || enemy.Kind == EnemyKind.Boss ? -24f : 52f;
-            if (enemy.Kind == EnemyKind.Moth) rotation = enemy.AbilityPhase == 2 ? -95f : 78f;
-            if (enemy.Kind == EnemyKind.Witch) rotation = -36f;
-            enemy.Object.transform.Rotate(0f, 0f, rotation * dt);
+            if (enemy.Velocity.sqrMagnitude > 0.02f)
+            {
+                float velocityAngle = Mathf.Atan2(enemy.Velocity.y, enemy.Velocity.x) * Mathf.Rad2Deg - 90f;
+                float facingWeight = enemy.Kind == EnemyKind.Witch ? 0.22f : enemy.Kind == EnemyKind.Boss ? 0.38f : 0.64f;
+                float targetRotation = Mathf.LerpAngle(0f, velocityAngle, facingWeight);
+                targetRotation += Mathf.Sin(enemy.MovePhase * 2.1f + enemy.MotionSeed) * (2.5f + Mathf.Abs(motionWave) * 3.5f);
+                float turnSpeed = enemy.Kind == EnemyKind.Moth ? 520f : enemy.Kind == EnemyKind.Boss ? 260f : 380f;
+                float currentRotation = enemy.Object.transform.eulerAngles.z;
+                float nextRotation = Mathf.MoveTowardsAngle(currentRotation, targetRotation, turnSpeed * dt);
+                enemy.Object.transform.rotation = Quaternion.Euler(0f, 0f, nextRotation);
+            }
             enemy.RingCooldown = Mathf.Max(0f, enemy.RingCooldown - dt);
 
             if (contactCooldown <= 0f && Vector2.Distance(player.transform.position, enemy.Object.transform.position) < enemy.Radius + 0.38f)
@@ -1582,7 +1648,11 @@ public sealed class PixelSurvivorGame : MonoBehaviour
         Vector2 position = suggestedPosition;
         if (position == Vector2.zero || Vector2.Distance(position, player.transform.position) < 2.7f)
         {
-            position = new Vector2(Random.Range(ArenaLeft + 1f, ArenaRight - 1f), Random.Range(ArenaBottom + 1f, ArenaTop - 1f));
+            float angle = Random.Range(0f, Mathf.PI * 2f);
+            float distance = Random.Range(4.5f, 8.5f);
+            position = (Vector2)player.transform.position + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
+            position.x = Mathf.Clamp(position.x, ArenaLeft + 1f, ArenaRight - 1f);
+            position.y = Mathf.Clamp(position.y, ArenaBottom + 1f, ArenaTop - 1f);
         }
         GameObject chestObject = CreateSpriteObject("Night Chest", chestSprite, position, 0.82f, 8);
         GameObject chestShadow = CreateShadow("Chest Ground Shadow", position + new Vector2(0.08f, -0.16f), 0.82f, 7);
