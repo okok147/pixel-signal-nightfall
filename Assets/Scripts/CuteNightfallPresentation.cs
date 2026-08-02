@@ -173,7 +173,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         if (authoredUiAtlas != null) authoredUiAtlas.filterMode = FilterMode.Point;
 
         woodPanel = CutePixelKit.PanelTexture(
-            CutePixelKit.Hex("6F4938"), CutePixelKit.Hex("21192B"), CutePixelKit.Hex("C58A58"), 16, 3);
+            CutePixelKit.Hex("A86D62"), CutePixelKit.MascotOutline, CutePixelKit.Hex("F6C6B6"), 16, 3);
         Texture2D rawParchmentPanel = CutePixelKit.CropAtlasTexture(
             authoredUiAtlas, "Authored Parchment Panel", 15, 35, 229, 65);
         parchmentPanel = CutePixelKit.FlattenPanelInterior(
@@ -186,7 +186,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             authoredUiAtlas, "Authored Hover Panel", 134, 116, 106, 31) ?? CutePixelKit.PanelTexture(
                 CutePixelKit.Hex("FFF3CB"), CutePixelKit.Hex("9C5B4A"), Color.white, 16, 3);
         darkPanel = CutePixelKit.PanelTexture(
-            new Color(0.055f, 0.045f, 0.105f, 0.94f), CutePixelKit.Hex("D9B36B"), CutePixelKit.Hex("2D3C46"), 16, 3);
+            new Color(0.16f, 0.115f, 0.22f, 0.95f), CutePixelKit.MascotPink, CutePixelKit.Hex("765A78"), 16, 3);
         slotPanelTexture = CutePixelKit.CropAtlasTexture(
             authoredUiAtlas, "Authored Equipment Slot", 15, 178, 51, 49) ?? darkPanel;
         Texture2D rawCardPanel = CutePixelKit.CropAtlasTexture(
@@ -210,11 +210,11 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             "Clean Authored Evolution Upgrade Card",
             16,
             CutePixelKit.Hex("F7D8D4")) ?? parchmentHover;
-        barBack = CutePixelKit.SolidTexture(new Color(0.13f, 0.09f, 0.15f, 0.92f), "Bar Back");
-        healthFill = CutePixelKit.SolidTexture(CutePixelKit.Coral, "Health Fill");
-        xpFill = CutePixelKit.SolidTexture(CutePixelKit.Mint, "XP Fill");
-        pulseFill = CutePixelKit.SolidTexture(CutePixelKit.Gold, "Pulse Fill");
-        veil = CutePixelKit.SolidTexture(new Color(0.055f, 0.04f, 0.09f, 0.78f), "Overlay Veil");
+        barBack = CutePixelKit.SolidTexture(new Color(0.12f, 0.085f, 0.18f, 0.94f), "Bar Back");
+        healthFill = CutePixelKit.SolidTexture(CutePixelKit.MascotBlush, "Health Fill");
+        xpFill = CutePixelKit.SolidTexture(CutePixelKit.MascotMint, "XP Fill");
+        pulseFill = CutePixelKit.SolidTexture(CutePixelKit.MascotLilac, "Pulse Fill");
+        veil = CutePixelKit.SolidTexture(new Color(0.10f, 0.065f, 0.16f, 0.78f), "Overlay Veil");
     }
 
     private void BuildSprites()
@@ -258,6 +258,7 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             heartIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Berry Basket Icon", 3, 4);
             bootIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Sewing Needle Icon", 5, 4);
             pulseIcon = CutePixelKit.CreateAtlasSprite(authoredSpriteSheet, "Protective Pulse Icon", 1, 5);
+            BuildMascotSprites();
             return;
         }
 
@@ -378,7 +379,148 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
             new[] { "..BBB..", "..BBB..", "..BBB..", "..BBBB.", ".BBBBB.", "BBBBBB.", "......." },
             new Dictionary<char, Color> { { 'B', CutePixelKit.Hex("7A5141") } }, 12f);
         pulseIcon = orbitSprite;
-        heroFrames = new Sprite[] { heroSprite };
+        BuildMascotSprites();
+    }
+
+    private void BuildMascotSprites()
+    {
+        Dictionary<char, Color> courierPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline },
+            { 'C', CutePixelKit.MascotCream },
+            { 'P', CutePixelKit.MascotPink },
+            { 'R', CutePixelKit.MascotBlush },
+            { 'M', CutePixelKit.MascotMint },
+            { 'D', CutePixelKit.MascotOutline },
+            { 'Y', CutePixelKit.MascotGold }
+        };
+        string[][] courierFrames =
+        {
+            new[]
+            {
+                "....OO....OO....", "...OOOOOOOOOO...", "..OOCCCCCCOOO..", ".OCCCCCCCCCCCCO.",
+                "OCCCDCCCCDCCCOO", "OCCRRCCCCRRCCCO", ".OCCCCCCCCCCCCO.", "..OPPPPPPPPPPO..",
+                "..OPPPPPPPPPPO..", "...OMMMMMMMO....", "...OMMMMMMMO....", "....OO..OO......",
+                "...OOO..OOO.....", "................", "................", "................"
+            },
+            new[]
+            {
+                "....OO....OO....", "...OOOOOOOOOO...", "..OOCCCCCCOOO..", ".OCCCCCCCCCCCCO.",
+                "OCCCDCCCCDCCCOO", "OCCRRCCCCRRCCCO", ".OCCCCCCCCCCCCO.", "..OPPPPPPPPPPO..",
+                "..OPPPPPPPPPPO..", "...OMMMMMMMO....", "...OMMMMMMMO....", "...OO...OO......",
+                "..OOOO..OOOO....", "................", "................", "................"
+            },
+            new[]
+            {
+                "....OO....OO....", "...OOOOOOOOOO...", "..OOCCCCCCOOO..", ".OCCCCCCCCCCCCO.",
+                "OCCCDCCCCDCCCOO", "OCCRRCCCCRRCCCO", ".OCCCCCCCCCCCCO.", "..OPPPPPPPPPPO..",
+                "..OPPPPPPPPPPO..", "...OMMMMMMMO....", "...OMMMMMMMO....", "....OO..OO......",
+                "....OOO..OOO....", "................", "................", "................"
+            },
+            new[]
+            {
+                "....OO....OO....", "...OOOOOOOOOO...", "..OOCCCCCCOOO..", ".OCCCCCCCCCCCCO.",
+                "OCCCDCCCCDCCCOO", "OCCRRCCCCRRCCCO", ".OCCCCCCCCCCCCO.", "..OPPPPPPPPPPO..",
+                "..OPPPPPPPPPPO..", "...OMMMMMMMO....", "...OMMMMMMMO....", "...OO...OO......",
+                "..OOOO..OOOO....", "................", "................", "................"
+            }
+        };
+        heroFrames = new Sprite[courierFrames.Length];
+        for (int frame = 0; frame < courierFrames.Length; frame++)
+        {
+            heroFrames[frame] = CutePixelKit.CreateSprite(
+                "Tiny Meadow Courier " + frame,
+                courierFrames[frame],
+                courierPalette,
+                16f);
+        }
+        heroSprite = heroFrames[0];
+        portraitSprite = CutePixelKit.CreateSprite("Tiny Courier Portrait", courierFrames[0], courierPalette, 13f);
+
+        Dictionary<char, Color> berryPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline }, { 'B', CutePixelKit.MascotPink },
+            { 'R', CutePixelKit.MascotBlush }, { 'D', CutePixelKit.MascotOutline },
+            { 'W', CutePixelKit.White }
+        };
+        slimeSprite = CutePixelKit.CreateSprite(
+            "Berry Mochi Mote",
+            new[]
+            {
+                "................", ".....OOOOOO.....", "...OOOBBBBOOO..", "..OOBBBBBBBBOO..",
+                ".OOBBDBBDBBBOO..", "OOBBBBBBBBBBBBO.", "OOBBRBBBBBRBBO.", ".OOBBBBBBBBBBO..",
+                "..OOBBBBBBBBO...", "...OOOBBBOOO....", ".....OOOO.......", "................"
+            },
+            berryPalette,
+            16f);
+
+        Dictionary<char, Color> puffPalette = new Dictionary<char, Color>
+        {
+            { 'O', CutePixelKit.MascotOutline }, { 'L', CutePixelKit.MascotLilac },
+            { 'C', CutePixelKit.MascotCream }, { 'M', CutePixelKit.MascotMint },
+            { 'R', CutePixelKit.MascotBlush }, { 'D', CutePixelKit.MascotOutline }
+        };
+        hornSprite = CutePixelKit.CreateSprite(
+            "Sleepy Moon Puff",
+            new[]
+            {
+                "....LL....LL....", "...LLOO..OOLL...", "..LOOOOOOOOOOOL..", ".OOCCCCCCCCCCOO.",
+                "OOCCCDCCCCDCCOOO", "OOCCRRCCCCRRCCOO", ".OCCCCCCCCCCCCO.", "..OMMMMMMMMMMO..",
+                "...OMMMMMMMMO...", "...OO..OO..OO...", "..OOO..OO..OOO..", "................"
+            },
+            puffPalette,
+            16f);
+
+        sparkSprite = CutePixelKit.CreateSprite(
+            "Tiny Mint Star",
+            new[] { "...W...", "..WMW..", ".WMMMW.", "WMMWMMW", ".WMMMW.", "..WMW..", "...W..." },
+            new Dictionary<char, Color> { { 'W', CutePixelKit.White }, { 'M', CutePixelKit.MascotMint } },
+            16f);
+        emberSprite = CutePixelKit.CreateSprite(
+            "Tiny Berry Heart",
+            new[] { ".PP.PP.", "PPPPPPP", "PPPPPPP", ".PPPPP.", "..PPP..", "...P...", "......." },
+            new Dictionary<char, Color> { { 'P', CutePixelKit.MascotPink } },
+            16f);
+        shardSprite = CutePixelKit.CreateSprite(
+            "Tiny Moon Dew",
+            new[] { "...W...", "..WMW..", ".WMMMW.", ".WMSMW.", "..WMW..", "...W...", "......." },
+            new Dictionary<char, Color> { { 'W', CutePixelKit.White }, { 'M', CutePixelKit.MascotMint }, { 'S', CutePixelKit.MascotLilac } },
+            16f);
+        chestSprite = CutePixelKit.CreateSprite(
+            "Tiny Gift Chest",
+            new[] { "..OOOOO..", ".OBBBBBBO.", "OBBYYBBBBO", "OBBBBBBBO", "OOOYYOOOO", "OBBBBBBBO", ".OOOOOOO.", "........." },
+            new Dictionary<char, Color> { { 'O', CutePixelKit.MascotOutline }, { 'B', CutePixelKit.MascotPink }, { 'Y', CutePixelKit.MascotGold } },
+            16f);
+        orbitSprite = CutePixelKit.CreateSprite(
+            "Tiny Flower Puff",
+            new[] { "...M...", ".MPPM..", "MPWPM..", ".MPPM..", "...M...", "......." },
+            new Dictionary<char, Color> { { 'M', CutePixelKit.MascotMint }, { 'P', CutePixelKit.MascotPink }, { 'W', CutePixelKit.White } },
+            16f);
+
+        wandIcon = CutePixelKit.CreateSprite(
+            "Tiny Star Wand Icon",
+            new[] { "..Y....", ".YYY...", "..O....", "..O....", ".OO....", "OO.....", "......." },
+            new Dictionary<char, Color> { { 'Y', CutePixelKit.MascotGold }, { 'O', CutePixelKit.MascotOutline } }, 12f);
+        ringIcon = CutePixelKit.CreateSprite(
+            "Tiny Note Ring Icon",
+            new[] { "..P.P..", ".PPPPP.", "PP...PP", "PP...PP", ".PPPPPP", "..PPP..", "......." },
+            new Dictionary<char, Color> { { 'P', CutePixelKit.MascotPink } }, 12f);
+        magnetIcon = CutePixelKit.CreateSprite(
+            "Tiny Mint Magnet Icon",
+            new[] { "MM...MM", "MM...MM", ".M...M.", "..MMM..", "...M...", ".......", "......." },
+            new Dictionary<char, Color> { { 'M', CutePixelKit.MascotMint } }, 12f);
+        heartIcon = CutePixelKit.CreateSprite(
+            "Tiny Berry Basket Icon",
+            new[] { ".PP.PP.", "PPPPPPP", "PPPPPPP", ".PPPPP.", "..PPP..", "...P...", "......." },
+            new Dictionary<char, Color> { { 'P', CutePixelKit.MascotBlush } }, 12f);
+        bootIcon = CutePixelKit.CreateSprite(
+            "Tiny Leaf Shoe Icon",
+            new[] { "...M...", "..MMM..", ".MMMM..", "MMMMM..", "..MM...", ".MMM...", "......." },
+            new Dictionary<char, Color> { { 'M', CutePixelKit.MascotMint } }, 12f);
+        pulseIcon = CutePixelKit.CreateSprite(
+            "Tiny Comfort Pulse Icon",
+            new[] { "...L...", ".LLL...", "LLLLLLL", ".LLL...", "...L...", ".......", "......." },
+            new Dictionary<char, Color> { { 'L', CutePixelKit.MascotLilac } }, 12f);
     }
 
     private void BuildFairytaleField()
@@ -730,13 +872,13 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         stylesBuilt = true;
         Font font = CutePixelKit.FriendlyFont;
 
-        titleStyle = MakeStyle(font, 30, CutePixelKit.Hex("4C3045"), FontStyle.Bold, TextAnchor.MiddleCenter, true);
+        titleStyle = MakeStyle(font, 30, CutePixelKit.Hex("5D3D58"), FontStyle.Bold, TextAnchor.MiddleCenter, true);
         headingStyle = MakeStyle(font, 17, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleLeft, false);
-        bodyStyle = MakeStyle(font, 14, CutePixelKit.Hex("4D3840"), FontStyle.Normal, TextAnchor.UpperLeft, true);
+        bodyStyle = MakeStyle(font, 14, CutePixelKit.Hex("644656"), FontStyle.Normal, TextAnchor.UpperLeft, true);
         tinyStyle = MakeStyle(font, 11, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleLeft, false);
         centeredStyle = MakeStyle(font, 13, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleCenter, true);
-        cardTitleStyle = MakeStyle(font, 18, CutePixelKit.Hex("4B3042"), FontStyle.Bold, TextAnchor.UpperLeft, true);
-        cardBodyStyle = MakeStyle(font, 13, CutePixelKit.Hex("5E4647"), FontStyle.Normal, TextAnchor.UpperLeft, true);
+        cardTitleStyle = MakeStyle(font, 18, CutePixelKit.MascotOutline, FontStyle.Bold, TextAnchor.UpperLeft, true);
+        cardBodyStyle = MakeStyle(font, 13, CutePixelKit.Hex("6D5260"), FontStyle.Normal, TextAnchor.UpperLeft, true);
 
         parchmentPanelStyle = MakePanelStyle(parchmentPanel, 10);
         darkPanelStyle = MakePanelStyle(darkPanel, 8);
@@ -896,17 +1038,17 @@ public sealed class CuteNightfallPresentation : MonoBehaviour
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
         DrawPanel(new Rect(190f, 112f, 580f, 350f), parchmentPanelStyle);
         GUI.Label(new Rect(235f, 142f, 490f, 54f), "Nightfall Meadow", titleStyle);
-        GUI.Label(new Rect(250f, 201f, 460f, 56f), "A small lantern. A soft field.\nMany tiny things coming closer.", bodyStyle);
-        GUI.Label(new Rect(270f, 276f, 420f, 56f), "Move with WASD or arrow keys.\nYour wand attacks by itself.", MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("5E4647"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
-        GUI.Label(new Rect(270f, 344f, 420f, 25f), "Space sends a protective pulse", MakeStyle(CutePixelKit.FriendlyFont, 12, CutePixelKit.Hex("7B5A52"), FontStyle.Normal, TextAnchor.MiddleCenter, false));
-        GUI.Label(new Rect(270f, 389f, 420f, 32f), "Press Enter to step into the grass", MakeStyle(CutePixelKit.FriendlyFont, 15, CutePixelKit.Hex("4C3045"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(250f, 201f, 460f, 56f), "A tiny lantern. A soft field.\nSomething small is coming closer.", bodyStyle);
+        GUI.Label(new Rect(270f, 276f, 420f, 56f), "Move with WASD or arrow keys.\nYour little friend helps by itself.", MakeStyle(CutePixelKit.FriendlyFont, 14, CutePixelKit.Hex("644656"), FontStyle.Bold, TextAnchor.MiddleCenter, true));
+        GUI.Label(new Rect(270f, 344f, 420f, 25f), "Space sends a little comfort pulse", MakeStyle(CutePixelKit.FriendlyFont, 12, CutePixelKit.Hex("8B6572"), FontStyle.Normal, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(270f, 389f, 420f, 32f), "Press Enter to visit the meadow", MakeStyle(CutePixelKit.FriendlyFont, 15, CutePixelKit.Hex("5D3D58"), FontStyle.Bold, TextAnchor.MiddleCenter, false));
     }
 
     private void DrawLevelUp()
     {
         GUI.DrawTexture(new Rect(0f, 0f, ReferenceWidth, ReferenceHeight), veil, ScaleMode.StretchToFill);
-        GUI.Label(new Rect(180f, 74f, 600f, 46f), "Choose a little blessing", MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleCenter, false));
-        GUI.Label(new Rect(220f, 113f, 520f, 24f), "The night waits while you decide", centeredStyle);
+        GUI.Label(new Rect(180f, 74f, 600f, 46f), "Choose a tiny blessing", MakeStyle(CutePixelKit.FriendlyFont, 25, CutePixelKit.Cream, FontStyle.Bold, TextAnchor.MiddleCenter, false));
+        GUI.Label(new Rect(220f, 113f, 520f, 24f), "The night can wait while you decide", centeredStyle);
 
         IList choices = GetList("upgradeChoices");
         for (int i = 0; i < 3; i++)

@@ -13,6 +13,7 @@
 - 三張大型升級卡與更友善的文字；
 - 遠景／中景／近景視差、柔和月光與燈籠體積光，以及依角色所在高度變化的比例與排序，形成 2.5D fantasy-life 場景感；
 - HUD 使用 authored UI atlas 的像素框線與九宮格面板，普通／祝福／進化卡片有不同材質層級，角色與敵人共用像素落地陰影與階梯式光暈；
+- 玩家、敵人、武器、拾取物與升級 icon 採原創 tiny-mascot 語彙：奶油色圓身、豆豆眼、粉紅腮紅、薄荷／薰衣草配色與短小表情；
 - 可重用、無外部依賴的程式生成像素素材工具。
 
 `CuteNightfallPresentation.cs` 會保留現有 `PixelSurvivorGame` 戰鬥模擬，停用舊開發者 HUD，優先套用 GitHub authored 背景／sprite sheet，再以 procedural kit 作 fallback。這讓目前版本仍可遊玩，同時為下一階段拆分正式系統留出空間。

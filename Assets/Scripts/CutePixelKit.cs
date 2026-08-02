@@ -27,6 +27,17 @@ public static class CutePixelKit
     public static readonly Color White = Hex("FFFDF6");
     public static readonly Color Shadow = new Color(0.05f, 0.035f, 0.09f, 0.52f);
 
+    // Original tiny-mascot palette: milk, berry, blush and mint accents keep
+    // characters gentle while the dark plum outline preserves gameplay clarity.
+    public static readonly Color MascotOutline = Hex("4B3042");
+    public static readonly Color MascotCream = Hex("FFF1D4");
+    public static readonly Color MascotPink = Hex("F4A7B9");
+    public static readonly Color MascotBlush = Hex("F29A9A");
+    public static readonly Color MascotMint = Hex("9ADCC6");
+    public static readonly Color MascotLilac = Hex("C8B5EF");
+    public static readonly Color MascotBrown = Hex("A86D62");
+    public static readonly Color MascotGold = Hex("FFD576");
+
     private static Sprite whiteSprite;
     private static Font friendlyFont;
 
